@@ -1,16 +1,17 @@
-import axios from 'axios'
-import { useAuthStore } from '@/zustand/auth.store'
+import axios from "axios";
+import { API_CONFIG } from "@/config/api.config";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-})
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token
-  if (token && config.url && !config.url.includes('/api/auth/login')) {
-    config.headers.Authorization = `Bearer ${token}`
+// Interceptor para manejar errores de respuesta
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error);
+    return Promise.reject(error);
   }
-  return config
-})
-
-
+);
