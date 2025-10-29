@@ -1,10 +1,21 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ExternalLink, MapPin, Phone, Mail, Globe } from "lucide-react";
+import {
+  ExternalLink,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  BotMessageSquareIcon,
+  Loader2,
+} from "lucide-react";
+import { motion } from "framer-motion";
 import type { Accommodation } from "@/lib/schemas/accommodation.schema";
 import { getPinColor } from "@/utils/map-utils";
 import { useAccommodationTypes } from "@/hooks/use-accommodation-types";
+import { useChat } from "@/hooks/use-chat";
+import { cn } from "@/lib/utils";
 
 interface InfoWindowContentProps {
   accommodation: Accommodation;
@@ -13,11 +24,24 @@ interface InfoWindowContentProps {
 const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
   const pinColor = getPinColor(accommodation.tipo);
   const { data: tiposAlojamiento } = useAccommodationTypes();
+  const { addAccommodationToChat } = useChat();
+  const [isAdding, setIsAdding] = useState(false);
 
   // Obtener el nombre del tipo de alojamiento
   const tipoNombre =
     tiposAlojamiento?.find((tipo) => tipo.id === accommodation.tipo)?.name ||
     `Tipo ${accommodation.tipo}`;
+
+  const handleAddToChat = async () => {
+    setIsAdding(true);
+    try {
+      addAccommodationToChat(accommodation.nombre, accommodation.direccion);
+      // Pequeño delay para feedback visual
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-2xl border-0 overflow-hidden">
@@ -102,8 +126,31 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
         </div>
       </div>
 
-      {/* Botón de acción */}
-      <div className="pt-2">
+      {/* Botones de acción */}
+      <div className="pt-2 space-y-2 px-4 pb-4">
+        <motion.button
+          onClick={handleAddToChat}
+          disabled={isAdding}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className={cn(
+            "w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-white rounded-lg transition-all duration-200 hover:shadow-lg active:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/40 disabled:opacity-70 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)]"
+          )}
+          aria-label="Agregar alojamiento al chat"
+          aria-busy={isAdding}
+        >
+          {isAdding ? (
+            <>
+              <span className="text-xs">Agregando...</span>
+              <Loader2 className="w-3 h-3 animate-spin " />
+            </>
+          ) : (
+            <>
+              <span className="text-xs">Agregar al chat</span>
+              <BotMessageSquareIcon className="w-3 h-3 " />
+            </>
+          )}
+        </motion.button>
         <Link
           to={`/accommodation/${accommodation.id}`}
           target="_blank"

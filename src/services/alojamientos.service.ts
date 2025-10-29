@@ -97,14 +97,28 @@ const getImageUrl = (imagePath: string): string => {
 
 // Helper para verificar si una imagen es válida (no es la imagen por defecto que no existe)
 const isValidImage = (imagePath: string): boolean => {
-  if (!imagePath) return false;
+  if (!imagePath) {
+    console.log("🖼️ No hay ruta de imagen");
+    return false;
+  }
+
+  // Normalizar el path a minúsculas para comparación
+  const normalizedPath = imagePath.toLowerCase();
 
   // La imagen por defecto de la API no existe (404), así que la filtramos
-  return !(
-    imagePath.toLowerCase().includes("imagen-por-defecto.jpg") ||
-    imagePath.toLowerCase().includes("imagenpordefeto.jpg") ||
-    imagePath.toLowerCase().includes("imagenpordefecto.jpg")
-  );
+  const isDefault =
+    normalizedPath.includes("imagen-por-defecto.jpg") ||
+    normalizedPath.includes("imagenpordefeto.jpg") ||
+    normalizedPath.includes("imagenpordefecto.jpg") ||
+    normalizedPath.includes("/establisshmentsimages/imagenpordefeto.jpg");
+
+  if (isDefault) {
+    console.log("🖼️ Imagen por defecto detectada y filtrada:", imagePath);
+  } else {
+    console.log("✅ Imagen válida aceptada:", imagePath);
+  }
+
+  return !isDefault;
 };
 
 // Mapea ApiAlojamiento a Accommodation
@@ -209,7 +223,9 @@ export const getAlojamientosDestacados = async (
         lng: parseFloat(item.longitude),
       },
       estado: "Activo",
-      imagenes: item.imagenes?.filter(isValidImage).map(getImageUrl) || [],
+      imagenes: item.imagenes
+        ? item.imagenes.filter(isValidImage).map(getImageUrl)
+        : [],
     }));
   } catch (error) {
     console.error("Error fetching alojamientos destacados:", error);

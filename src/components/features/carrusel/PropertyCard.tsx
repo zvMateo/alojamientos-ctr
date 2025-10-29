@@ -1,10 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2, BotMessageSquareIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Accommodation } from "@/lib/schemas/accommodation.schema";
 import { useAccommodationTypes } from "@/hooks/use-accommodation-types";
-import { memo } from "react";
+import { useChat } from "@/hooks/use-chat";
+import { memo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface PropertyCardProps {
   accommodation: Accommodation;
@@ -14,31 +17,60 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
   const { nombre, localidad, direccion, paginaWeb, tipo, imagenes } =
     accommodation;
   const { data: tiposAlojamiento } = useAccommodationTypes();
+  const { addAccommodationToChat } = useChat();
+  const [isAdding, setIsAdding] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   // Obtener el nombre del tipo de alojamiento
   const tipoNombre =
     tiposAlojamiento?.find((t) => t.id === tipo)?.name || `Tipo ${tipo}`;
 
+  const handleAddToChat = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAdding(true);
+    try {
+      addAccommodationToChat(nombre, direccion || "Sin dirección");
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <Card className="w-full h-full hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col border border-border hover:border-primary/50 bg-card">
-      <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-t-lg">
+      <AspectRatio
+        ratio={16 / 9}
+        className="overflow-hidden rounded-t-lg bg-gray-100"
+      >
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          </div>
+        )}
         <img
           src={
             imagenes && imagenes.length > 0
               ? imagenes[0]
-              : "/region_centro_texto-1.png"
+              : "/imagenpordefeto.jpg"
           }
           alt={nombre}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          decoding="async"
+          className={cn(
+            "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
+            imageLoading ? "opacity-0" : "opacity-100"
+          )}
           onError={(e) => {
-            // Fallback a placeholder si la imagen falla
-            e.currentTarget.src = "/region_centro_texto-1.png";
+            e.currentTarget.src = "/imagenpordefeto.jpg";
+            setImageLoading(false);
           }}
           onLoad={(e) => {
-            // Verificar si la imagen cargó correctamente
             const img = e.currentTarget;
             if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-              img.src = "/region_centro_texto-1.png";
+              img.src = "/imagenpordefeto.jpg";
+            } else {
+              setImageLoading(false);
             }
           }}
         />
@@ -119,6 +151,31 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
                 </span>
               </div>
             </div>
+
+            {/* Botón Agregar al chat - responsive */}
+            <motion.button
+              onClick={handleAddToChat}
+              disabled={isAdding}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                "w-full inline-flex items-center justify-center gap-1 text-xs font-semibold text-white transition-all py-1.5 px-2.5 rounded-md hover:shadow-md active:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary/40 disabled:opacity-70 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)] mb-1"
+              )}
+              aria-label="Agregar alojamiento al chat"
+              aria-busy={isAdding}
+            >
+              {isAdding ? (
+                <>
+                  <Loader2 className="w-3 h-3 shrink-0 animate-spin" />
+                  <span>Agregando...</span>
+                </>
+              ) : (
+                <>
+                  <span>Agregar al chat</span>
+                  <BotMessageSquareIcon className="w-3 h-3 " />
+                </>
+              )}
+            </motion.button>
 
             {/* Botón Ver detalles - responsive */}
             <Link

@@ -1,8 +1,8 @@
 import {
-  MarkerClusterer,
-  SuperClusterAlgorithm,
-} from "@googlemaps/markerclusterer";
-import { useMap } from "@vis.gl/react-google-maps";
+    MarkerClusterer,
+    SuperClusterAlgorithm,
+  } from "@googlemaps/markerclusterer";
+  import { useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useRef } from "react";
 import type { Accommodation } from "@/lib/schemas/accommodation.schema";
 import { getPinColor, createPinSVG } from "@/utils/map-utils";
@@ -28,8 +28,8 @@ export default function ClusteredAccommodationMarkers({
 }: ClusteredAccommodationMarkersProps) {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const onMarkerClickRef = useRef(onMarkerClick);
-  const map = useMap();
-
+    const map = useMap();
+  
   // Mantener referencia actualizada del callback
   useEffect(() => {
     onMarkerClickRef.current = onMarkerClick;
@@ -69,23 +69,23 @@ export default function ClusteredAccommodationMarkers({
     });
 
     // Crear clusterer con algoritmo SuperCluster
-    const algorithm = new SuperClusterAlgorithm({
-      radius: 100,
-      maxZoom: 16,
-    });
-
+      const algorithm = new SuperClusterAlgorithm({
+        radius: 100,
+        maxZoom: 16,
+      });
+  
     clustererRef.current = new MarkerClusterer({
-      map,
+        map,
       markers,
-      algorithm,
-      onClusterClick: (_, cluster) => {
-        const bounds = new window.google.maps.LatLngBounds();
+        algorithm,
+        onClusterClick: (_, cluster) => {
+          const bounds = new window.google.maps.LatLngBounds();
         for (const marker of cluster.markers) {
           bounds.extend(marker.position);
-        }
-        map.fitBounds(bounds);
-      },
-      renderer: {
+          }
+          map.fitBounds(bounds);
+        },
+        renderer: {
         render: ({ count, position }) => {
           // Colores dinámicos basados en la cantidad de marcadores
           const color =
@@ -104,18 +104,19 @@ export default function ClusteredAccommodationMarkers({
               anchor: new window.google.maps.Point(20, 20),
             },
           });
+          },
         },
-      },
-    });
-
+      });
+  
     // Cleanup function
-    return () => {
-      if (clustererRef.current) {
-        clustererRef.current.clearMarkers();
-        clustererRef.current = null;
-      }
-    };
+      return () => {
+        if (clustererRef.current) {
+          clustererRef.current.clearMarkers();
+          clustererRef.current = null;
+        }
+      };
   }, [map, accommodations]); // Solo dependencias esenciales
 
   return null; // Este componente no renderiza nada directamente, solo maneja los marcadores
-}
+  }
+  

@@ -182,19 +182,19 @@ export default function AccommodationDetailPage() {
                       accommodation.imagenes &&
                       accommodation.imagenes.length > 0
                         ? accommodation.imagenes[0]
-                        : "/region_centro_texto-1.png"
+                        : "/imagenpordefeto.jpg"
                     }
                     alt={accommodation.nombre}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback a imagen local si la imagen falla
-                      e.currentTarget.src = "/region_centro_texto-1.png";
+                      // Fallback a imagen por defecto si la imagen falla
+                      e.currentTarget.src = "/imagenpordefeto.jpg";
                     }}
                     onLoad={(e) => {
                       // Verificar si la imagen cargó correctamente
                       const img = e.currentTarget;
                       if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-                        img.src = "/region_centro_texto-1.png";
+                        img.src = "/imagenpordefeto.jpg";
                       }
                     }}
                   />

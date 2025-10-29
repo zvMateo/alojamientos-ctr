@@ -12,8 +12,9 @@ export default defineConfig({
     },
   },
   build: {
-    // Optimizaciones de bundle
+    // Aumentar límite de memoria para evitar crashes
     rollupOptions: {
+      maxParallelFileOps: 1, // Procesar archivos uno por uno
       output: {
         // Code splitting por vendor chunks
         manualChunks: {
