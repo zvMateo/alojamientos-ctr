@@ -44,6 +44,16 @@ const ActivitiesList = memo(
                 {departamento} • {prestadores.length} prestadores
               </p>
             </div>
+            {/* Botón de cerrar - visible solo en mobile */}
+            {onClosePanel && (
+              <button
+                onClick={onClosePanel}
+                className="lg:hidden w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                aria-label="Cerrar lista de actividades"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            )}
           </div>
 
           {/* Barra de búsqueda */}

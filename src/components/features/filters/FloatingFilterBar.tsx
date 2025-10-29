@@ -366,14 +366,16 @@ const FloatingFilterBar = memo(() => {
           >
             {isCarouselVisible ? (
               <>
-                <EyeOff className="w-4 h-4" />
-                Ocultar Más Populares
-              </>
-            ) : (
-              <>
-                <Grid3X3 className="w-4 h-4" />
-                Mostrar Más Populares
-              </>
+              <EyeOff className="w-4 h-4" />
+              <span className="hidden sm:inline">Ocultar Más Populares</span>
+              <span className="sm:hidden">Ocultar</span>
+            </>
+          ) : (
+            <>
+              <Grid3X3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Mostrar Más Populares</span>
+              <span className="sm:hidden">Más Populares</span>
+            </>
             )}
           </Button>
 

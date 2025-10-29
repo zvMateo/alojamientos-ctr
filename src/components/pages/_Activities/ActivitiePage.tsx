@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,18 @@ export default function ActivitiePage() {
   const [selectedDepartamento, setSelectedDepartamento] = useState<
     string | null
   >(null);
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== "undefined" && window.innerWidth >= 1024
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const {
     data: prestadores = [],
@@ -90,7 +102,7 @@ export default function ActivitiePage() {
         className="h-full relative"
         initial={false}
         animate={{
-          width: selectedDepartamento ? "45%" : "100%",
+          width: selectedDepartamento ? (isDesktop ? "45%" : "100%") : "100%",
         }}
         transition={{ duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }}
         style={{ height: "100%" }}
@@ -103,17 +115,25 @@ export default function ActivitiePage() {
         />
       </motion.div>
 
-      {/* Lista de Actividades - Derecha */}
+      {/* Lista de Actividades */}
       <AnimatePresence>
         {selectedDepartamento && (
           <motion.div
             key="activities-panel"
-            className="absolute top-0 right-0 h-full bg-white shadow-2xl"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            className="absolute h-full bg-white shadow-2xl"
+            initial={isDesktop ? { x: "100%" } : { y: "100%" }}
+            animate={isDesktop ? { x: 0 } : { y: 0 }}
+            exit={isDesktop ? { x: "100%" } : { y: "100%" }}
             transition={{ duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }}
-            style={{ width: "55%", height: "100%" }}
+            style={{
+              width: isDesktop ? "55%" : "100%",
+              height: "100%",
+              zIndex: 50,
+              top: 0,
+              right: isDesktop ? 0 : "auto",
+              left: isDesktop ? "auto" : 0,
+              bottom: isDesktop ? "auto" : 0,
+            }}
           >
             <ActivitiesList
               prestadores={filteredPrestadores}

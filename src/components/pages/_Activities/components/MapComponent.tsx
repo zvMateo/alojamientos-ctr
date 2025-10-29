@@ -234,7 +234,7 @@ const MapComponent = memo(function MapComponent({
       {selectedDepartamento && (
         <button
           onClick={onDeselectDepartamento}
-          className="absolute top-4 left-4 z-50 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg shadow-lg"
+          className="hidden lg:inline-flex absolute top-4 left-4 z-50 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg shadow-lg"
         >
           ← Volver
         </button>

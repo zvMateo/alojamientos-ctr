@@ -135,7 +135,7 @@ const ChatWidget = memo(function ChatWidget() {
   // Posicionar por defecto (bottom-right) y reajustar en resize
   useEffect(() => {
     const updateDefault = () => {
-      const margin = 16; // equivalente a right-4 bottom-4
+      const margin = 20; // equivalente a right-4 bottom-4
       const btn = dragRef.current;
       const width = btn?.offsetWidth || 48;
       const height = btn?.offsetHeight || 48;
