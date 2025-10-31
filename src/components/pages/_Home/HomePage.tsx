@@ -1,5 +1,5 @@
 import MapContainer from "./components/MapContainer";
-import FloatingFilterBar from "@/components/features/filters/FloatingFilterBar";
+import FilterBar from "@/components/features/filters/FilterBar";
 import CarruselPropiedades from "@/components/features/carrusel/CarruselPropiedades";
 import { useFilterStore } from "@/zustand/filter.store";
 import { useAccommodations } from "@/hooks/use-accommodations";
@@ -62,7 +62,7 @@ export default function HomePage() {
 
   return (
     <div className="w-full h-screen flex flex-col relative">
-      <FloatingFilterBar />
+      <FilterBar variant="home" />
       <div className="flex-1 relative">
         <MapContainer filteredData={filteredData} />
         <CarruselPropiedades />

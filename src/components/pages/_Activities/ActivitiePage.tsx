@@ -1,13 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+// import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getPrestadoresByDepartamentoId } from "./services/prestadores.service";
 import {
-  getPrestadores,
-  groupPrestadoresByDepartamento,
-} from "./services/prestadores.service";
+  getDepartamentosNameToId,
+  normalizeDeptName,
+} from "./services/departamentos.service";
 import MapComponent from "./components/MapComponent";
 import ActivitiesList from "./components/ActivitiesList";
+import FilterBar from "@/components/features/filters/FilterBar";
 
 export default function ActivitiePage() {
   const [selectedDepartamento, setSelectedDepartamento] = useState<
@@ -26,28 +28,55 @@ export default function ActivitiePage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const {
-    data: prestadores = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["prestadores"],
-    queryFn: getPrestadores,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: 3,
-  });
-
-  // Memoizar el agrupamiento de prestadores
+  // Eliminado: carga masiva de prestadores (se consulta por departamento)
   const prestadoresPorDepartamento = useMemo(
-    () => groupPrestadoresByDepartamento(prestadores),
-    [prestadores]
+    () => new Map<string, never[]>(),
+    []
   );
 
-  // Memoizar prestadores filtrados
+  // Traer mapa Nombre->ID de departamentos desde la API (1 sola vez)
+  const { data: departamentosNameToId = {} } = useQuery({
+    queryKey: ["departamentos-name-to-id"],
+    queryFn: getDepartamentosNameToId,
+    staleTime: 24 * 60 * 60 * 1000, // 24h
+  });
+
+  // Cargar prestadores del departamento con el endpoint nuevo
+  const departamentoId = useMemo(() => {
+    if (!selectedDepartamento) return undefined;
+    const key = normalizeDeptName(selectedDepartamento);
+    return departamentosNameToId[key];
+  }, [selectedDepartamento, departamentosNameToId]);
+
+  const { data: prestadoresDept = [] } = useQuery({
+    queryKey: ["prestadores-departamento", departamentoId],
+    queryFn: () => getPrestadoresByDepartamentoId(departamentoId as number),
+    enabled: typeof departamentoId === "number",
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Si no tenemos id mapeado aún, usamos el agrupado local como fallback
+  const [barResults, setBarResults] = useState<import("./types").Prestador[]>(
+    []
+  );
+
+  const basePrestadores = useMemo<import("./types").Prestador[]>(() => {
+    if (!selectedDepartamento) return [];
+    if (typeof departamentoId === "number") return prestadoresDept;
+    return prestadoresPorDepartamento.get(selectedDepartamento) || [];
+  }, [
+    selectedDepartamento,
+    departamentoId,
+    prestadoresDept,
+    prestadoresPorDepartamento,
+  ]);
+
   const filteredPrestadores = useMemo(() => {
     if (!selectedDepartamento) return [];
-    return prestadoresPorDepartamento.get(selectedDepartamento) || [];
-  }, [prestadoresPorDepartamento, selectedDepartamento]);
+    // Si la barra devolvió resultados (filtros o búsqueda), usamos esos
+    if (barResults && barResults.length > 0) return barResults;
+    return basePrestadores;
+  }, [selectedDepartamento, barResults, basePrestadores]);
 
   const handleSelectDepartamento = (departamento: string) => {
     setSelectedDepartamento(departamento);
@@ -57,46 +86,19 @@ export default function ActivitiePage() {
     setSelectedDepartamento(null);
   };
 
-  // Estado de carga mejorado
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg font-medium text-gray-600 animate-pulse">
-            Cargando actividades...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Estado de error mejorado
-  if (error) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-          <div className="text-red-500 text-6xl mb-6">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Error al cargar los datos
-          </h2>
-          <p className="text-gray-600 mb-8">
-            No se pudieron cargar los prestadores. Por favor, verifica tu
-            conexión e intenta nuevamente.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Eliminados estados de carga/err globales (ahora se carga por departamento)
 
   return (
     <div className="w-full h-screen bg-linear-to-br from-gray-50 to-gray-100 overflow-hidden relative">
+      <FilterBar
+        variant="activities"
+        onResults={setBarResults}
+        basePrestadores={basePrestadores}
+        onOpenPanel={() => {
+          if (!selectedDepartamento) setSelectedDepartamento("Resultados");
+        }}
+        panelOpen={!!selectedDepartamento}
+      />
       {/* Mapa - Izquierda */}
       <motion.div
         className="h-full relative"

@@ -51,6 +51,7 @@ const MapComponent = memo(function MapComponent({
     x: number;
     y: number;
   } | null>(null);
+  const hoveredPathRef = useRef<SVGPathElement | null>(null);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -66,73 +67,6 @@ const MapComponent = memo(function MapComponent({
           svgElement.setAttribute("width", "100%");
           svgElement.setAttribute("height", "100%");
           svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-          // Agregar definición de gradiente al SVG
-          const defs =
-            svgElement.querySelector("defs") ||
-            document.createElementNS("http://www.w3.org/2000/svg", "defs");
-          if (!svgElement.querySelector("defs")) {
-            svgElement.insertBefore(defs, svgElement.firstChild);
-          }
-
-          // Crear gradiente lineal diagonal con los colores originales
-          const gradientId = "mapGradient";
-          const existingGradient = defs.querySelector(`#${gradientId}`);
-          if (!existingGradient) {
-            const gradient = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "linearGradient"
-            );
-            gradient.setAttribute("id", gradientId);
-            // Gradiente diagonal de esquina superior izquierda a inferior derecha
-            gradient.setAttribute("x1", "0%");
-            gradient.setAttribute("y1", "0%");
-            gradient.setAttribute("x2", "100%");
-            gradient.setAttribute("y2", "100%");
-
-            // Stops exactos del gradiente que proporcionaste
-            const stop1 = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "stop"
-            );
-            stop1.setAttribute("offset", "0%");
-            stop1.setAttribute("stop-color", "#F1010C"); // Rojo
-
-            const stop2 = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "stop"
-            );
-            stop2.setAttribute("offset", "27.99%");
-            stop2.setAttribute("stop-color", "#C34184"); // Morado
-
-            const stop3 = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "stop"
-            );
-            stop3.setAttribute("offset", "55.98%");
-            stop3.setAttribute("stop-color", "#C34184"); // Morado (transición)
-
-            const stop4 = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "stop"
-            );
-            stop4.setAttribute("offset", "73.92%");
-            stop4.setAttribute("stop-color", "#FE9221"); // Naranja
-
-            const stop5 = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "stop"
-            );
-            stop5.setAttribute("offset", "91.86%");
-            stop5.setAttribute("stop-color", "#FE9221"); // Naranja (final)
-
-            gradient.appendChild(stop1);
-            gradient.appendChild(stop2);
-            gradient.appendChild(stop3);
-            gradient.appendChild(stop4);
-            gradient.appendChild(stop5);
-            defs.appendChild(gradient);
-          }
         }
 
         const paths = svgRef.current.querySelectorAll("path");
@@ -146,20 +80,21 @@ const MapComponent = memo(function MapComponent({
           if (isSelected) {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #d71f33; stroke: #fff; stroke-width: 5px; filter: drop-shadow(0 8px 16px rgba(215, 31, 51, 0.5)); transform: translateY(-40px);"
+              "cursor: pointer; fill: #FE9221; stroke: #fff; stroke-width: 5px; filter: drop-shadow(0 8px 16px rgba(215, 31, 51, 0.5)); transform: translateY(-40px);"
             );
           } else if (isHovered) {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #B853A7; stroke: #fff; stroke-width: 3.02px; opacity: 0.8;"
+              "cursor: pointer; fill: #FE9221; stroke: #fff; stroke-width: 3.02px; opacity: 0.8;"
             );
           } else {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: url(#mapGradient); stroke: #fff; stroke-width: 3.02px;"
+              "cursor: pointer; fill: #F1010C; stroke: #fff; stroke-width: 3.02px;"
             );
           }
         };
+        //
 
         // Guardar referencia al path seleccionado
         let selectedPathId: string | null = null;
@@ -178,13 +113,20 @@ const MapComponent = memo(function MapComponent({
           // Estilo inicial
           updatePathStyle(path, pathId === selectedPathId, false);
 
-          path.addEventListener("mouseenter", () => {
+          const updateTooltipPosition = () => {
+            if (!svgRef.current) return;
             const rect = path.getBoundingClientRect();
+            const containerRect = svgRef.current.getBoundingClientRect();
             setTooltip({
               text: departamentoNombre || "Sin nombre",
-              x: rect.left + rect.width / 2,
-              y: rect.top - 10,
+              x: rect.left - containerRect.left + rect.width / 2,
+              y: rect.top - containerRect.top - 12,
             });
+          };
+
+          path.addEventListener("mouseenter", () => {
+            hoveredPathRef.current = path;
+            updateTooltipPosition();
 
             // Solo cambiar el hover si no está seleccionado
             if (selectedDepartamento !== departamentoNombre) {
@@ -192,7 +134,12 @@ const MapComponent = memo(function MapComponent({
             }
           });
 
+          path.addEventListener("mousemove", () => {
+            updateTooltipPosition();
+          });
+
           path.addEventListener("mouseleave", () => {
+            hoveredPathRef.current = null;
             setTooltip(null);
 
             // Restaurar estilo según si está seleccionado o no
@@ -210,6 +157,30 @@ const MapComponent = memo(function MapComponent({
             });
           });
         });
+
+        // Reposicionar tooltip en scroll/resize (para evitar drift)
+        const handleReposition = () => {
+          if (hoveredPathRef.current) {
+            const p = hoveredPathRef.current;
+            const rect = p.getBoundingClientRect();
+            const containerRect = svgRef.current!.getBoundingClientRect();
+            setTooltip((t) =>
+              t
+                ? {
+                    text: t.text,
+                    x: rect.left - containerRect.left + rect.width / 2,
+                    y: rect.top - containerRect.top - 12,
+                  }
+                : t
+            );
+          }
+        };
+        window.addEventListener("scroll", handleReposition, true);
+        window.addEventListener("resize", handleReposition);
+        return () => {
+          window.removeEventListener("scroll", handleReposition, true);
+          window.removeEventListener("resize", handleReposition);
+        };
       })
       .catch(console.error);
   }, [prestadoresPorDepartamento, onSelectDepartamento, selectedDepartamento]);
@@ -220,11 +191,12 @@ const MapComponent = memo(function MapComponent({
 
       {tooltip && (
         <div
-          className="absolute bg-gray-900 text-white px-3 py-1 rounded text-sm z-50"
+          className="absolute text-white px-3 py-1 rounded text-sm z-50 shadow-lg pointer-events-none"
           style={{
             left: tooltip.x,
             top: tooltip.y,
             transform: "translateX(-50%)",
+            backgroundColor: "#B853A7",
           }}
         >
           {tooltip.text}

@@ -24,8 +24,9 @@ const ActivitiesList = memo(
         (p) =>
           p.nombre.toLowerCase().includes(term) ||
           p.localidad.toLowerCase().includes(term) ||
-          p.email.toLowerCase().includes(term) ||
-          p.actividades.some((a) => a.toLowerCase().includes(term))
+          p.email?.toLowerCase().includes(term) ||
+          p.actividades.some((a) => a.toLowerCase().includes(term)) ||
+          p.telefono?.toLowerCase().includes(term)
       );
     }, [prestadores, searchTerm]);
 

@@ -1,4 +1,6 @@
-import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { AiOutlineYoutube } from 'react-icons/ai';
+import { BsTwitterX } from 'react-icons/bs';
 
 export default function Footer() {
   return (
@@ -15,7 +17,7 @@ export default function Footer() {
               />
             </div>
             <p className="text-sm text-primary-foreground/80 max-w-xs">
-              🌟 Descubre los mejores alojamientos de Córdoba. Tu guía completa
+              Descubre los mejores alojamientos de Córdoba. Tu guía completa
               para una experiencia turística inolvidable en las Sierras
               Cordobesas.
             </p>
@@ -25,21 +27,107 @@ export default function Footer() {
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/turismocba/?hl=es"
+                target="_blank"
+                data-label="Instagram"
+                aria-label="Síguenos en Instagram"
+                rel="noopener nofollow"
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                </svg>
               </a>
+
               <a
-                href="#"
+                href="https://www.tiktok.com/discover/c%C3%B3rdoba-turismo"
+                target="_blank"
+                data-label="TikTok"
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                aria-label="Email"
+                aria-label="Síguenos en TikTok"
+                rel="noopener nofollow"
               >
-                <Mail className="h-5 w-5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M22 6v5q-4 0-6-2v7a7 7 0 1 1-5-6.7m0 6.7a2 2 0 1 0-2 2a2 2 0 0 0 2-2V1h5q2 5 6 5" />
+                </svg>
+              </a>
+
+              <a
+                href="https://twitter.com/turismocba"
+                data-label="X"
+                target="_blank"
+                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                aria-label="Seguir en X"
+                rel="noopener nofollow"
+              >
+                <BsTwitterX size={24} />
+              </a>
+
+              <a
+                href="https://www.youtube.com/channel/UCtZRc3h0m29bXR0CACn-VfQ"
+                data-label="YouTube"
+                target="_blank"
+                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                aria-label="Síguenos en Youtube"
+                rel="noopener nofollow"
+              >
+                <AiOutlineYoutube size={24} />
+                
+                {/* <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                  aria-hidden="true"
+                  focusable="false"
+                > */}
+                  {/* <rect x="3" y="7" width="18" height="10" rx="3" />
+                  <path d="M11 9l4 3-4 3z" />
+                </svg> */}
               </a>
             </div>
           </div>
@@ -121,21 +209,42 @@ export default function Footer() {
           </div>
         </div>
         <div className="w-full py-8 flex justify-center items-center gap-8 flex-wrap">
-          <img
-            src="/cba-gob-300x99.png"
-            alt="Córdoba Gob"
-            className="h-16 w-auto object-contain"
-          />
-          <img
-            src="/region_centro_texto-1.png"
-            alt="Region Centro"
-            className="h-16 w-auto object-contain"
-          />
-          <img
-            src="/argentinaministerio-300x85.png"
-            alt="Argentina Ministerio"
-            className="h-16 w-auto object-contain"
-          />
+          <a
+            href="https://www.cba.gov.ar/"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            aria-label="Ir a cba.gov.ar"
+          >
+            <img
+              src="/cba-gob-300x99.png"
+              alt="Córdoba Gob"
+              className="h-16 w-auto object-contain"
+            />
+          </a>
+          <a
+            href="https://www.regioncentro.gob.ar/institucional/"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            aria-label="Ir a cba.gov.ar"
+          >
+            <img
+              src="/region_centro_texto-1.png"
+              alt="Region Centro"
+              className="h-16 w-auto object-contain"
+            />
+          </a>
+          <a
+            href="https://www.argentina.gob.ar/"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            aria-label="Ir a cba.gov.ar"
+          >
+            <img
+              src="/argentinaministerio-300x85.png"
+              alt="Argentina Ministerio"
+              className="h-16 w-auto object-contain"
+            />
+          </a>
         </div>
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-primary-foreground/20">

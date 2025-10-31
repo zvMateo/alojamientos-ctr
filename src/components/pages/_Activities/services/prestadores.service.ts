@@ -37,7 +37,7 @@ const mapApiToPrestador = (
     email: apiData.email || "",
     localidad: apiData.localidad,
     departamento,
-    actividades: apiData.actividades as Prestador["actividades"],
+    actividades: apiData.actividades,
   };
 };
 
@@ -72,6 +72,61 @@ export const getPrestadores = async (): Promise<Prestador[]> => {
     console.error("❌ Error fetching prestadores:", error);
     throw error;
   }
+};
+
+// Nuevo: obtener proveedores por departamento (endpoint consolidado)
+interface ApiActividadItem {
+  id: number;
+  name: string;
+}
+interface ApiProveedorFull {
+  id: number;
+  nombre: string;
+  telefono: string | null;
+  email: string | null;
+  resolucion: string | null;
+  vencimientoCredencial: string | null;
+  localidad: string;
+  actividades: ApiActividadItem[];
+}
+interface ApiLocalidadFull {
+  localidadId: number;
+  localidadNombre: string;
+  departamentoNombre: string;
+  proveedores: ApiProveedorFull[];
+}
+interface ApiDepartamentoFull {
+  departamentoId: number;
+  departamentoNombre: string;
+  localidades: ApiLocalidadFull[];
+}
+
+export const getPrestadoresByDepartamentoId = async (
+  departamentoId: number
+): Promise<Prestador[]> => {
+  const { data } = await api.get<ApiDepartamentoFull[]>(
+    API_CONFIG.ENDPOINTS.DEPARTAMENTO_FULL_DATA(departamentoId)
+  );
+  const root = data?.[0];
+  if (!root) return [];
+
+  const prestadores: Prestador[] = [];
+  for (const loc of root.localidades || []) {
+    for (const prov of loc.proveedores || []) {
+      prestadores.push({
+        id: String(prov.id),
+        nombre: prov.nombre,
+        resolucion: prov.resolucion || "",
+        vigenciaCredencial: prov.vencimientoCredencial || "",
+        telefono: prov.telefono || "",
+        email: prov.email || "",
+        localidad: prov.localidad,
+        departamento: root.departamentoNombre,
+        actividades: (prov.actividades || []).map((a) => a.name),
+      });
+    }
+  }
+  return prestadores;
 };
 
 // Función para agrupar prestadores por departamento

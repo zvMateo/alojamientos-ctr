@@ -25,11 +25,11 @@ export interface Prestador {
   nombre: string;
   resolucion: string;
   vigenciaCredencial: string;
-  telefono: string;
-  email: string;
+  telefono?: string;
+  email?: string;
   localidad: string;
   departamento: string;
-  actividades: TipoActividad[];
+  actividades: string[]; // usar string[] para cubrir todos los casos de la API
 }
 
 // Interface para un departamento
