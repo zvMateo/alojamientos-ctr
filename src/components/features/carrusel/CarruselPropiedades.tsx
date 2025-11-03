@@ -82,16 +82,9 @@ const CarruselPropiedades = memo(() => {
   }
 
   return (
-    <section className="absolute bottom-40 left-0 right-0 z-30 h-52 animate-in slide-in-from-bottom-4 duration-300">
-      <div className="container mx-auto px-4 h-full flex items-center">
+    <section className="absolute bottom-40 left-0 right-0 z-30 h-32 md:h-52 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="container mx-auto px-2 md:px-4 2xl:px-20 h-full flex items-center">
         <div className="w-full">
-          {/* Indicador de cantidad de propiedades */}
-          {/* <div className="text-center mb-2">
-            <span className="text-xs text-gray-500 bg-white/90 px-3 py-1 rounded-full shadow-sm">
-              {cards.length} propiedades destacadas
-            </span>
-          </div> */}
-
           <Carousel
             className="w-full"
             opts={{
@@ -105,18 +98,18 @@ const CarruselPropiedades = memo(() => {
               }),
             ]}
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselContent className="-ml-1 md:-ml-2 lg:-ml-4">
               {cards.map((accommodation) => (
                 <CarouselItem
                   key={accommodation.id}
-                  className="pl-2 md:pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6"
+                  className="pl-1 md:pl-2 lg:pl-4 basis-[45%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6"
                 >
                   <PropertyCard accommodation={accommodation} />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
+            <CarouselPrevious />
+            <CarouselNext />
           </Carousel>
         </div>
       </div>

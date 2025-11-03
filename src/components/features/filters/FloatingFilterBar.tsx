@@ -222,7 +222,7 @@ const FloatingFilterBar = memo(() => {
 
             {/* Dropdown de Sugerencias */}
             {showSuggestions && localSearchTerm.length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+              <div className="fixed md:absolute top-full left-0 right-0 md:left-0 md:right-0 mt-1 mx-4 md:mx-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-[60vh] md:max-h-80 overflow-y-auto">
                 {isSearching ? (
                   <div className="p-4 text-center text-sm text-gray-500">
                     <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" />
@@ -230,7 +230,7 @@ const FloatingFilterBar = memo(() => {
                   </div>
                 ) : hasResults ? (
                   <>
-                    <div className="p-2 text-xs text-gray-500 border-b bg-gray-50">
+                    <div className="p-2 text-xs text-gray-500 border-b bg-gray-50 sticky top-0">
                       {suggestions.length} alojamiento
                       {suggestions.length !== 1 ? "s" : ""} encontrado
                       {suggestions.length !== 1 ? "s" : ""}
@@ -239,23 +239,23 @@ const FloatingFilterBar = memo(() => {
                       <button
                         key={suggestion.id}
                         onClick={() => handleSuggestionSelect(suggestion)}
-                        className="w-full px-3 py-3 text-left hover:bg-gray-50 flex items-start gap-3 text-sm border-b border-gray-100 last:border-b-0"
+                        className="w-full px-3 py-3 text-left hover:bg-gray-50 active:bg-gray-100 flex items-start gap-2 md:gap-3 text-sm border-b border-gray-100 last:border-b-0 transition-colors"
                       >
                         <div className="shrink-0 mt-0.5">
                           <Building className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
+                          <div className="font-medium text-gray-900 line-clamp-2 md:truncate text-sm md:text-base">
                             {suggestion.nombre}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                            <MapPin className="w-3 h-3" />
-                            <span>
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate">
                               {suggestion.localidad}, {suggestion.region}
                             </span>
                           </div>
-                          <div className="text-xs text-primary mt-1">
-                            {suggestion.clase}
+                          <div className="text-xs text-primary mt-1 truncate">
+                            {/* {suggestion.clase} */}
                           </div>
                         </div>
                       </button>
@@ -366,16 +366,16 @@ const FloatingFilterBar = memo(() => {
           >
             {isCarouselVisible ? (
               <>
-              <EyeOff className="w-4 h-4" />
-              <span className="hidden sm:inline">Ocultar Más Populares</span>
-              <span className="sm:hidden">Ocultar</span>
-            </>
-          ) : (
-            <>
-              <Grid3X3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Mostrar Más Populares</span>
-              <span className="sm:hidden">Más Populares</span>
-            </>
+                <EyeOff className="w-4 h-4" />
+                <span className="hidden sm:inline">Ocultar Más Populares</span>
+                <span className="sm:hidden">Ocultar</span>
+              </>
+            ) : (
+              <>
+                <Grid3X3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Mostrar Más Populares</span>
+                <span className="sm:hidden">Más Populares</span>
+              </>
             )}
           </Button>
 

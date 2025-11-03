@@ -126,54 +126,86 @@ const ActivitiesFilterBar = memo(
 
     return (
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm shadow-md border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          {/* Búsqueda */}
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Buscar por nombre, localidad o actividad"
-            className="flex-1 max-w-sm"
-            onSubmit={handleApply}
-          />
+        <div className="container mx-auto px-2 sm:px-4 py-3">
+          {/* Fila 1: Búsqueda en móvil, con botones en desktop */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Búsqueda */}
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar..."
+              className="flex-1 min-w-0"
+              onSubmit={handleApply}
+            />
 
-          {/* Localidad */}
-          <SelectApi
-            value={localityId?.toString()}
-            onChange={(v) => setLocalityId(v ? parseInt(v) : undefined)}
-            options={localidadOptions}
-            placeholder={isLoadingLoc ? "Cargando..." : "Localidad"}
-            disabled={isLoadingLoc}
-          />
+            {/* Botones solo en desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="h-10 whitespace-nowrap"
+                onClick={handleApply}
+                disabled={!isDirty && !isBusy}
+              >
+                {isBusy ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Buscando
+                  </>
+                ) : (
+                  <>Aplicar</>
+                )}
+              </Button>
+              <Button variant="ghost" className="h-10" onClick={handleClear}>
+                Limpiar
+              </Button>
+            </div>
+          </div>
 
-          {/* Actividad */}
-          {/* {selectView && ()} */}
-          <SelectApi
-            value={activityId?.toString()}
-            onChange={(v) => setActivityId(v ? parseInt(v) : undefined)}
-            options={actividadOptions}
-            placeholder={isLoadingAct ? "Cargando..." : "Actividad"}
-            disabled={isLoadingAct}
-          />
+          {/* Fila 2: Selectores y botones en móvil */}
+          <div className="flex items-center gap-2 mt-2 md:mt-3">
+            {/* Localidad */}
+            <SelectApi
+              value={localityId?.toString()}
+              onChange={(v) => setLocalityId(v ? parseInt(v) : undefined)}
+              options={localidadOptions}
+              placeholder={isLoadingLoc ? "..." : "Localidad"}
+              disabled={isLoadingLoc}
+              className="flex-1 md:flex-initial md:w-40"
+            />
 
-          {/* Acciones */}
-          <Button
-            variant="outline"
-            className="h-10"
-            onClick={handleApply}
-            disabled={!isDirty && !isBusy}
-          >
-            {isBusy ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Buscando
-              </>
-            ) : (
-              <>Aplicar</>
-            )}
-          </Button>
-          <Button variant="ghost" className="h-10" onClick={handleClear}>
-            Limpiar
-          </Button>
+            {/* Actividad */}
+            <SelectApi
+              value={activityId?.toString()}
+              onChange={(v) => setActivityId(v ? parseInt(v) : undefined)}
+              options={actividadOptions}
+              placeholder={isLoadingAct ? "..." : "Actividad"}
+              disabled={isLoadingAct}
+              className="flex-1 md:flex-initial md:w-40"
+            />
+
+            {/* Botones en móvil */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="md:hidden h-10 px-3 shrink-0"
+              onClick={handleApply}
+              disabled={!isDirty && !isBusy}
+            >
+              {isBusy ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Aplicar"
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden h-10 px-3 shrink-0"
+              onClick={handleClear}
+            >
+              Limpiar
+            </Button>
+          </div>
         </div>
       </div>
     );

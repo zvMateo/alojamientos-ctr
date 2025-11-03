@@ -89,7 +89,7 @@ export default function ActivitiePage() {
   // Eliminados estados de carga/err globales (ahora se carga por departamento)
 
   return (
-    <div className="w-full h-screen bg-linear-to-br from-gray-50 to-gray-100 overflow-hidden relative">
+    <div className="w-full h-screen bg-linear-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden relative">
       <FilterBar
         variant="activities"
         onResults={setBarResults}
@@ -101,7 +101,7 @@ export default function ActivitiePage() {
       />
       {/* Mapa - Izquierda */}
       <motion.div
-        className="h-full relative"
+        className="flex-1 relative min-h-0"
         initial={false}
         animate={{
           width: selectedDepartamento ? (isDesktop ? "45%" : "100%") : "100%",
@@ -122,19 +122,19 @@ export default function ActivitiePage() {
         {selectedDepartamento && (
           <motion.div
             key="activities-panel"
-            className="absolute h-full bg-white shadow-2xl"
+            className="absolute bg-white shadow-2xl"
             initial={isDesktop ? { x: "100%" } : { y: "100%" }}
             animate={isDesktop ? { x: 0 } : { y: 0 }}
             exit={isDesktop ? { x: "100%" } : { y: "100%" }}
             transition={{ duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }}
             style={{
               width: isDesktop ? "55%" : "100%",
-              height: "100%",
+              height: "calc(100vh - 120px)",
               zIndex: 50,
-              top: 0,
+              top: isDesktop ? 0 : "auto",
               right: isDesktop ? 0 : "auto",
               left: isDesktop ? "auto" : 0,
-              bottom: isDesktop ? "auto" : 0,
+              bottom: 0,
             }}
           >
             <ActivitiesList
