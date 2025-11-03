@@ -35,7 +35,11 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
   const handleAddToChat = async () => {
     setIsAdding(true);
     try {
-      addAccommodationToChat(accommodation.nombre, accommodation.direccion);
+      addAccommodationToChat(
+        accommodation.nombre,
+        accommodation.direccion,
+        accommodation.id
+      );
       // Pequeño delay para feedback visual
       await new Promise((resolve) => setTimeout(resolve, 300));
     } finally {

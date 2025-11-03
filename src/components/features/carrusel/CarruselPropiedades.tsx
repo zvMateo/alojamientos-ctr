@@ -82,7 +82,7 @@ const CarruselPropiedades = memo(() => {
   }
 
   return (
-    <section className="absolute bottom-40 left-0 right-0 z-30 h-44 animate-in slide-in-from-bottom-4 duration-300">
+    <section className="absolute bottom-40 left-0 right-0 z-30 h-52 animate-in slide-in-from-bottom-4 duration-300">
       <div className="container mx-auto px-4 h-full flex items-center">
         <div className="w-full">
           {/* Indicador de cantidad de propiedades */}

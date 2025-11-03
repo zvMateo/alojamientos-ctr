@@ -180,7 +180,7 @@ export default function AccommodationDetailPage() {
                   <img
                     src={
                       accommodation.imagenes &&
-                      accommodation.imagenes.length > 0
+                        accommodation.imagenes.length > 0
                         ? accommodation.imagenes[0]
                         : "/imagenpordefeto.jpg"
                     }

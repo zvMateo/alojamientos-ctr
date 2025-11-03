@@ -104,7 +104,7 @@ export default function MapContainer({ filteredData = [] }: MapContainerProps) {
               </div>
             </InfoWindow>
           )}
-          
+
         </Map>
       </APIProvider>
     </div>

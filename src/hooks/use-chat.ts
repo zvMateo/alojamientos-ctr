@@ -7,9 +7,9 @@ export const useChat = () => {
   const { showToast } = useToast();
 
   const addAccommodationToChat = useCallback(
-    (nombre: string, direccion: string) => {
+    (nombre: string, direccion: string, accommodationId: string | number) => {
       const message = `${nombre} - ${direccion}`;
-      setInputMessage(message);
+      setInputMessage(message, accommodationId);
       openChat();
       showToast("✓ Alojamiento agregado al chat", "success", 2000);
     },

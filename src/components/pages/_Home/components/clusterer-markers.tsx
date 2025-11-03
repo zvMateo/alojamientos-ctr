@@ -1,11 +1,11 @@
 import {
-    MarkerClusterer,
-    SuperClusterAlgorithm,
-  } from "@googlemaps/markerclusterer";
-  import { useMap } from "@vis.gl/react-google-maps";
+  MarkerClusterer,
+  SuperClusterAlgorithm,
+} from "@googlemaps/markerclusterer";
+import { useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useRef } from "react";
 import type { Accommodation } from "@/lib/schemas/accommodation.schema";
-import { getPinColor, createPinSVG } from "@/utils/map-utils";
+// Eliminado: getPinColor, createPinSVG. Usaremos un SVG estático desde public
 
 // Declarar google en window para TypeScript
 declare global {
@@ -15,7 +15,7 @@ declare global {
 }
 
 // Importar tipos de Google Maps
-import type {} from "@googlemaps/markerclusterer";
+import type { } from "@googlemaps/markerclusterer";
 
 interface ClusteredAccommodationMarkersProps {
   accommodations: Accommodation[];
@@ -28,8 +28,8 @@ export default function ClusteredAccommodationMarkers({
 }: ClusteredAccommodationMarkersProps) {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const onMarkerClickRef = useRef(onMarkerClick);
-    const map = useMap();
-  
+  const map = useMap();
+
   // Mantener referencia actualizada del callback
   useEffect(() => {
     onMarkerClickRef.current = onMarkerClick;
@@ -56,7 +56,15 @@ export default function ClusteredAccommodationMarkers({
     const markers = accommodations.map((accommodation) => {
       const marker = new window.google.maps.Marker({
         position: accommodation.coordenadas,
-        icon: createPinSVG(getPinColor(accommodation.tipo), 32, false),
+        icon: {
+          // Asegurar ruta desde public (Vite sirve en la raíz)
+          url: "/icono hotel.svg",
+          // Aumentar tamaño para mayor visibilidad
+          scaledSize: new window.google.maps.Size(36, 46),
+          // Anclar en la base al centro para que "apoye" en la posición
+          anchor: new window.google.maps.Point(18, 46),
+        },
+        optimized: false, // Evita rasterización en canvas que puede distorsionar SVG al hacer zoom
         title: accommodation.nombre,
       });
 
@@ -69,23 +77,23 @@ export default function ClusteredAccommodationMarkers({
     });
 
     // Crear clusterer con algoritmo SuperCluster
-      const algorithm = new SuperClusterAlgorithm({
-        radius: 100,
-        maxZoom: 16,
-      });
-  
+    const algorithm = new SuperClusterAlgorithm({
+      radius: 100,
+      maxZoom: 16,
+    });
+
     clustererRef.current = new MarkerClusterer({
-        map,
+      map,
       markers,
-        algorithm,
-        onClusterClick: (_, cluster) => {
-          const bounds = new window.google.maps.LatLngBounds();
+      algorithm,
+      onClusterClick: (_, cluster) => {
+        const bounds = new window.google.maps.LatLngBounds();
         for (const marker of cluster.markers) {
           bounds.extend(marker.position);
-          }
-          map.fitBounds(bounds);
-        },
-        renderer: {
+        }
+        map.fitBounds(bounds);
+      },
+      renderer: {
         render: ({ count, position }) => {
           // Colores dinámicos basados en la cantidad de marcadores
           const color =
@@ -104,19 +112,18 @@ export default function ClusteredAccommodationMarkers({
               anchor: new window.google.maps.Point(20, 20),
             },
           });
-          },
         },
-      });
-  
+      },
+    });
+
     // Cleanup function
-      return () => {
-        if (clustererRef.current) {
-          clustererRef.current.clearMarkers();
-          clustererRef.current = null;
-        }
-      };
+    return () => {
+      if (clustererRef.current) {
+        clustererRef.current.clearMarkers();
+        clustererRef.current = null;
+      }
+    };
   }, [map, accommodations]); // Solo dependencias esenciales
 
   return null; // Este componente no renderiza nada directamente, solo maneja los marcadores
-  }
-  
+}

@@ -37,7 +37,11 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
     e.stopPropagation();
     setIsAdding(true);
     try {
-      addAccommodationToChat(nombre, direccion || "Sin dirección");
+      addAccommodationToChat(
+        nombre,
+        direccion || "Sin dirección",
+        accommodation.id
+      );
       await new Promise((resolve) => setTimeout(resolve, 300));
     } finally {
       setIsAdding(false);
@@ -47,67 +51,65 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
   return (
     <Card className="w-full h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group flex flex-col border-0 bg-white rounded-3xl overflow-hidden">
       {/* Imagen Principal con padding */}
-      <div className="p-3 bg-gradient-to-br from-gray-50 to-gray-100">
-        <AspectRatio
-          ratio={4 / 3}
-          className="overflow-hidden bg-gray-100 rounded-2xl relative"
-        >
-          {imageLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          )}
-          <img
-            src={
-              imagenes && imagenes.length > 0
-                ? imagenes[0]
-                : "/imagenpordefeto.jpg"
-            }
-            alt={nombre}
-            loading="lazy"
-            decoding="async"
-            className={cn(
-              "w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-2xl",
-              imageLoading ? "opacity-0" : "opacity-100"
-            )}
-            onError={(e) => {
-              e.currentTarget.src = "/imagenpordefeto.jpg";
-              setImageLoading(false);
-            }}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-                img.src = "/imagenpordefeto.jpg";
-              } else {
-                setImageLoading(false);
-              }
-            }}
-          />
-
-          {/* Botones flotantes sobre la imagen */}
-          <div className="absolute top-2 right-2 flex items-center gap-2 z-20">
-            {paginaWeb && (
-              <motion.a
-                href={
-                  paginaWeb.startsWith("http")
-                    ? paginaWeb
-                    : `https://${paginaWeb}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Abrir sitio web"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 backdrop-blur-sm hover:bg-white transition-colors shadow-lg"
-                title="Sitio web"
-                onClick={(e) => e.stopPropagation()}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Globe className="h-3.5 w-3.5 text-primary" />
-              </motion.a>
-            )}
+      <AspectRatio
+        ratio={4 / 3}
+        className="overflow-hidden rounded-2xl relative"
+      >
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
-        </AspectRatio>
-      </div>
+        )}
+        <img
+          src={
+            imagenes && imagenes.length > 0
+              ? imagenes[0]
+              : "/imagenpordefeto.jpg"
+          }
+          alt={nombre}
+          loading="lazy"
+          decoding="async"
+          className={cn(
+            "w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-2xl",
+            imageLoading ? "opacity-0" : "opacity-100"
+          )}
+          onError={(e) => {
+            e.currentTarget.src = "/imagenpordefeto.jpg";
+            setImageLoading(false);
+          }}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+              img.src = "/imagenpordefeto.jpg";
+            } else {
+              setImageLoading(false);
+            }
+          }}
+        />
+
+        {/* Botones flotantes sobre la imagen */}
+        <div className="absolute top-2 right-2 flex items-center gap-2 z-20">
+          {paginaWeb && (
+            <motion.a
+              href={
+                paginaWeb.startsWith("http")
+                  ? paginaWeb
+                  : `https://${paginaWeb}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Abrir sitio web"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 backdrop-blur-sm hover:bg-white transition-colors shadow-lg"
+              title="Sitio web"
+              onClick={(e) => e.stopPropagation()}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Globe className="h-3.5 w-3.5 text-primary" />
+            </motion.a>
+          )}
+        </div>
+      </AspectRatio>
 
       {/* Contenido - más compacto */}
       <CardContent className="p-4 flex-1 flex flex-col bg-white">
@@ -121,7 +123,12 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
               {nombre}
             </h3>
             {/* Subtítulo - tipo de alojamiento con color de marca */}
-            <p className="text-xs font-medium text-primary/80">{tipoNombre}</p>
+            <p
+              className="leading-tight line-clamp-1 mb-0.5 text-xs font-medium text-primary/80"
+              title={tipoNombre}
+            >
+              {tipoNombre}
+            </p>
           </div>
 
           {/* Información de ubicación con iconos - más compacta */}
@@ -141,29 +148,24 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
           </div>
 
           {/* Botones de acción - más compactos */}
-          <div className="mt-3 space-y-1.5">
+          <div className="flex gap-2 mt-3">
             {/* Botón principal - con gradiente de marca */}
             <motion.button
               onClick={handleAddToChat}
               disabled={isAdding}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={cn(
-                "w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white transition-all py-2.5 px-3 rounded-xl hover:shadow-lg active:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/40 disabled:opacity-70 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)] hover:opacity-95"
+                "flex-1 inline-flex items-center justify-center text-xs font-semibold text-white transition-all py-2.5 px-3 rounded-xl hover:shadow-lg active:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/40 disabled:opacity-70 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)] hover:opacity-95"
               )}
               aria-label="Agregar alojamiento al chat"
               aria-busy={isAdding}
+              title="Agregar al chat"
             >
               {isAdding ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
-                  <span>Agregando...</span>
-                </>
+                <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
               ) : (
-                <>
-                  <BotMessageSquareIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span>Agregar al chat</span>
-                </>
+                <BotMessageSquareIcon className="w-4 h-4 shrink-0" />
               )}
             </motion.button>
 
@@ -172,10 +174,10 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
               to={`/accommodation/${accommodation.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors py-2 px-3 rounded-xl hover:bg-primary/5 border border-primary/20 hover:border-primary/30"
+              className="flex-1 inline-flex items-center justify-center text-xs font-semibold text-primary hover:text-primary/80 transition-colors py-2.5 px-3 rounded-xl hover:bg-primary/5 border border-primary/20 hover:border-primary/30"
+              title="Ver detalles"
             >
-              Ver detalles
-              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+              <ExternalLink className="w-4 h-4 shrink-0" />
             </Link>
           </div>
         </div>

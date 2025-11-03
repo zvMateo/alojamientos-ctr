@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState, useEffect } from "react";
+import { memo, useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Bot, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/zustand/chat.store";
@@ -12,9 +12,26 @@ type ChatMessage = {
 const BRAND_GRADIENT =
   "bg-[linear-gradient(135deg,_#F1010C_0%,_#C34184_40%,_#FE9221_80%)]";
 
+const SESSION_KEY = "chat_session_cba";
+const HISTORY_PREFIX = "chat_history_cba_";
+const SESSION_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 días
+const SEND_TIMEOUT_MS = 30_000;
+
+const makeMessage = (role: "user" | "assistant", content: string) => ({
+  id: crypto.randomUUID(),
+  role,
+  content,
+});
+
 const ChatWidget = memo(function ChatWidget() {
-  const { isOpen, inputMessage, openChat, closeChat, clearInput } =
-    useChatStore();
+  const {
+    isOpen,
+    inputMessage,
+    accommodationId,
+    openChat,
+    closeChat,
+    clearInput,
+  } = useChatStore();
   // Posición del botón (por defecto bottom-right)
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const dragRef = useRef<HTMLButtonElement | null>(null);
@@ -24,15 +41,12 @@ const ChatWidget = memo(function ChatWidget() {
   const startPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 }); // Posición inicial del arrastre
   const dragStartTime = useRef<number>(0); // Tiempo cuando empezó el arrastre
   const lastMoveTime = useRef<number>(0); // Última vez que hubo movimiento
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelPos, setPanelPos] = useState<{ x: number; y: number }>({
@@ -40,13 +54,19 @@ const ChatWidget = memo(function ChatWidget() {
     y: 0,
   });
 
+  // Referencia para guardar el accommodationId temporalmente
+  const pendingAccommodationIdRef = useRef<string | number | null>(null);
+
   // Sincronizar inputMessage del store con el input local
   useEffect(() => {
     if (inputMessage) {
       setInput(inputMessage);
+      // Guardar el accommodationId en la ref antes de limpiar el store
+      pendingAccommodationIdRef.current = accommodationId;
       clearInput(); // Limpiar el store después de leer
+      if (!isOpen) openChat();
     }
-  }, [inputMessage, clearInput]);
+  }, [inputMessage, accommodationId, clearInput, isOpen, openChat]);
 
   // Calcular posición óptima del panel cuando se abre
   useEffect(() => {
@@ -117,6 +137,163 @@ const ChatWidget = memo(function ChatWidget() {
     };
   }, [isOpen, pos]);
 
+  // Session init (persistente por 3 días) - encapsulado para claridad
+  const initSession = useCallback(() => {
+    try {
+      const now = Date.now();
+      const raw = localStorage.getItem(SESSION_KEY);
+      let id: string | null = null;
+      let expiresAt: number | null = null;
+      let isNew = false;
+
+      if (raw) {
+        const parsed = JSON.parse(raw) as { id: string; expiresAt: number };
+        if (parsed?.id && parsed?.expiresAt && parsed.expiresAt > now) {
+          id = parsed.id;
+          expiresAt = parsed.expiresAt;
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+
+      if (!id) {
+        id = crypto.randomUUID();
+        expiresAt = now + SESSION_TTL_MS;
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ id, expiresAt }));
+        isNew = true;
+      }
+
+      setSessionId(id);
+      setSessionExpiresAt(expiresAt);
+
+      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL as
+        | string
+        | undefined;
+      if (isNew && webhookUrl) {
+        fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "session_start",
+            sessionId: id,
+            source: "alojamientos-ctr",
+            context: {
+              route: window.location.pathname,
+              locale: navigator.language,
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            },
+          }),
+        }).catch(() => {
+          /* no-op */
+        });
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
+
+  const restoreHistory = useCallback(
+    (sid: string | null) => {
+      if (!sid) {
+        // Si no hay sesión, mostrar mensaje de bienvenida
+        setMessages([
+          makeMessage(
+            "assistant",
+            "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+          ),
+        ]);
+        return;
+      }
+      try {
+        const sRaw = localStorage.getItem(SESSION_KEY);
+        const sessionData = sRaw
+          ? (JSON.parse(sRaw) as { id: string; expiresAt: number })
+          : null;
+        const expiresAt = sessionData?.expiresAt ?? sessionExpiresAt ?? 0;
+        if (expiresAt && expiresAt < Date.now()) {
+          // Sesión expirada, limpiar y mostrar mensaje de bienvenida
+          localStorage.removeItem(HISTORY_PREFIX + sid);
+          setMessages([
+            makeMessage(
+              "assistant",
+              "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+            ),
+          ]);
+          return;
+        }
+
+        const raw = localStorage.getItem(HISTORY_PREFIX + sid);
+        if (!raw) {
+          // No hay historial, mostrar mensaje de bienvenida
+          setMessages([
+            makeMessage(
+              "assistant",
+              "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+            ),
+          ]);
+          return;
+        }
+        const parsed = JSON.parse(raw) as {
+          messages: ChatMessage[];
+          expiresAt?: number;
+        };
+
+        // Verificar si el historial está expirado
+        if (parsed?.expiresAt && parsed.expiresAt < Date.now()) {
+          localStorage.removeItem(HISTORY_PREFIX + sid);
+          setMessages([
+            makeMessage(
+              "assistant",
+              "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+            ),
+          ]);
+          return;
+        }
+
+        if (
+          parsed?.messages &&
+          Array.isArray(parsed.messages) &&
+          parsed.messages.length > 0
+        ) {
+          setMessages(parsed.messages);
+        } else {
+          // Si no hay mensajes en el historial, mostrar mensaje de bienvenida
+          setMessages([
+            makeMessage(
+              "assistant",
+              "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+            ),
+          ]);
+        }
+      } catch {
+        // Si hay error al parsear, mostrar mensaje de bienvenida
+        setMessages([
+          makeMessage(
+            "assistant",
+            "¡Hola! Soy tu asistente de la Agencia Córdoba Turismo. ¿En qué puedo ayudarte?"
+          ),
+        ]);
+      }
+    },
+    [sessionExpiresAt]
+  );
+
+  // Guardar historial en cada cambio
+  useEffect(() => {
+    if (!sessionId || !messages || messages.length === 0) return;
+    try {
+      const trimmed = messages.slice(-200); // límite de seguridad
+      const payload = {
+        messages: trimmed,
+        updatedAt: Date.now(),
+        expiresAt: sessionExpiresAt ?? Date.now() + SESSION_TTL_MS,
+      };
+      localStorage.setItem(HISTORY_PREFIX + sessionId, JSON.stringify(payload));
+    } catch {
+      // almacenamiento lleno o deshabilitado
+    }
+  }, [messages, sessionId, sessionExpiresAt]);
+
   // Auto-scroll to last message
   useEffect(() => {
     listRef.current?.scrollTo({
@@ -125,12 +302,14 @@ const ChatWidget = memo(function ChatWidget() {
     });
   }, [messages, isOpen]);
 
-  // Abrir chat automáticamente cuando hay un mensaje
+  // init session + restore history
   useEffect(() => {
-    if (inputMessage && !isOpen) {
-      openChat();
-    }
-  }, [inputMessage, isOpen, openChat]);
+    initSession();
+  }, [initSession]);
+
+  useEffect(() => {
+    if (sessionId) restoreHistory(sessionId);
+  }, [sessionId, restoreHistory]);
 
   // Posicionar por defecto (bottom-right) y reajustar en resize
   useEffect(() => {
@@ -222,26 +401,145 @@ const ChatWidget = memo(function ChatWidget() {
 
   const canSend = useMemo(() => input.trim().length > 0, [input]);
 
-  const handleSend = () => {
+  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL as string | undefined;
+
+  // Send message (POST)
+  const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text) return;
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text,
-    };
+    if (!text || isSending) return;
 
-    // Echo assistant placeholder (integrate API later)
-    const assistantMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content:
-        "Gracias por tu consulta. En breve integraré respuestas inteligentes.",
-    };
+    setErrorText(null);
+    const userMsg = makeMessage("user", text);
+    const typingMsg = makeMessage("assistant", "Escribiendo…");
 
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    setMessages((prev) => [...prev, userMsg, typingMsg]);
     setInput("");
-  };
+    setIsSending(true);
+
+    if (!webhookUrl) {
+      const err = "Falta VITE_N8N_WEBHOOK_URL en el entorno (.env).";
+      setErrorText(err);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === typingMsg.id ? { ...m, content: err } : m))
+      );
+      setIsSending(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+
+    let sidFromAgent: string | undefined = undefined;
+
+    // Capturar el accommodationId pendiente y limpiar la ref
+    const currentAccommodationId = pendingAccommodationIdRef.current;
+    pendingAccommodationIdRef.current = null;
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          source: "alojamientos-ctr",
+          sessionId: sessionId ?? "unknown",
+          ...(currentAccommodationId && {
+            accommodationId: currentAccommodationId,
+          }),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`Error ${res.status}: ${body || res.statusText}`);
+      }
+
+      const contentType = res.headers.get("content-type") || "";
+      let replyText = "";
+
+      if (contentType.includes("application/json")) {
+        const data = await res.json().catch(() => ({}));
+        // Extraer texto de respuesta
+        replyText = (
+          data?.reply ||
+          data?.text ||
+          data?.message ||
+          ""
+        ).toString();
+
+        // Si el agente responde con un sessionId (ej: cuando n8n crea/normaliza sesión), persistirlo
+        sidFromAgent = (data?.sessionId ||
+          data?.session_id ||
+          data?.session ||
+          data?.cookie) as string | undefined;
+        if (sidFromAgent) {
+          try {
+            const expiresAt = Date.now() + SESSION_TTL_MS;
+            // Actualizar SESSION_KEY y estado
+            localStorage.setItem(
+              SESSION_KEY,
+              JSON.stringify({ id: sidFromAgent, expiresAt })
+            );
+            setSessionId(sidFromAgent);
+            setSessionExpiresAt(expiresAt);
+          } catch {
+            // ignore storage failures
+          }
+        }
+      } else {
+        replyText = await res.text();
+      }
+
+      // Actualizar el mensaje de "Escribiendo…" y persistir el historial inmediatamente
+      setMessages((prev) => {
+        const next = prev.map((m) =>
+          m.id === typingMsg.id ? { ...m, content: replyText || "" } : m
+        );
+
+        // Persistir bajo la session correcta: preferir sidFromAgent si fue devuelta
+        const sidToUse = sidFromAgent ?? sessionId;
+        if (sidToUse) {
+          try {
+            const trimmed = next.slice(-200);
+            const newExpiresAt = Date.now() + SESSION_TTL_MS;
+            const payload = {
+              messages: trimmed,
+              updatedAt: Date.now(),
+              expiresAt: newExpiresAt,
+            };
+            localStorage.setItem(
+              HISTORY_PREFIX + sidToUse,
+              JSON.stringify(payload)
+            );
+          } catch {
+            // ignore storage failures
+          }
+        }
+
+        return next;
+      });
+    } catch {
+      clearTimeout(timeout);
+      const friendly = "Ocurrió un error al contactar el asistente.";
+
+      setErrorText(friendly);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === typingMsg.id ? { ...m, content: friendly } : m
+        )
+      );
+    } finally {
+      setIsSending(false);
+    }
+  }, [input, isSending, webhookUrl, sessionId]);
+
+  const chatSession = localStorage.getItem(
+    "chat_history_cba_8375b912-a5ab-40ec-924b-4f3532a72473"
+  );
+  console.log(chatSession);
 
   return (
     <>
@@ -406,7 +704,36 @@ const ChatWidget = memo(function ChatWidget() {
                       : "bg-white text-gray-900 border border-gray-200"
                   )}
                 >
-                  {m.content}
+                  {m.content === "Escribiendo…" ? (
+                    <div className="flex items-center gap-1">
+                      <span>Escribiendo</span>
+                      <span className="flex gap-0.5">
+                        <span
+                          className="inline-block w-1 h-1 bg-gray-600 rounded-full animate-bounce"
+                          style={{
+                            animationDelay: "0ms",
+                            animationDuration: "1s",
+                          }}
+                        ></span>
+                        <span
+                          className="inline-block w-1 h-1 bg-gray-600 rounded-full animate-bounce"
+                          style={{
+                            animationDelay: "200ms",
+                            animationDuration: "1s",
+                          }}
+                        ></span>
+                        <span
+                          className="inline-block w-1 h-1 bg-gray-600 rounded-full animate-bounce"
+                          style={{
+                            animationDelay: "400ms",
+                            animationDuration: "1s",
+                          }}
+                        ></span>
+                      </span>
+                    </div>
+                  ) : (
+                    m.content
+                  )}
                 </div>
               </div>
             ))}
@@ -414,19 +741,22 @@ const ChatWidget = memo(function ChatWidget() {
 
           {/* Input */}
           <div className="p-3 border-t bg-white">
+            {errorText && (
+              <div className="mb-2 text-xs text-red-600">{errorText}</div>
+            )}
             <div className="flex items-center gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && canSend) handleSend();
+                  if (e.key === "Enter" && canSend && !isSending) handleSend();
                 }}
                 className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
                 placeholder="Escribe tu mensaje..."
               />
               <button
                 onClick={handleSend}
-                disabled={!canSend}
+                disabled={!canSend || isSending}
                 className={cn(
                   "inline-flex items-center gap-2 px-3 py-2 rounded-xl text-white disabled:opacity-60",
                   BRAND_GRADIENT
@@ -434,7 +764,9 @@ const ChatWidget = memo(function ChatWidget() {
                 aria-label="Enviar"
               >
                 <Send className="h-4 w-4" />
-                <span className="text-xs font-medium">Enviar</span>
+                <span className="text-xs font-medium">
+                  {isSending ? "Enviando" : "Enviar"}
+                </span>
               </button>
             </div>
           </div>
