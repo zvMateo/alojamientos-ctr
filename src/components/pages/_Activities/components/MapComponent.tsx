@@ -190,7 +190,7 @@ const MapComponent = memo(function MapComponent({
     <div className="pt-5 pb-5 w-full h-full relative overflow-hidden bg-linear-to-br from-slate-50 via-gray-50 to-slate-100">
       {/* Imagen de fondo (mapa.jpg) - fondo de Argentina responsive */}
       <img
-        src="/public/mapa.jpg"
+        src="/mapa.jpg"
         className="absolute pointer-events-none w-full h-full object-cover md:object-contain"
         style={{
           zIndex: 0,
