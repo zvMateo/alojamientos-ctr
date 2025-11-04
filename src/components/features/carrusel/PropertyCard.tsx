@@ -50,8 +50,8 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
 
   // Función para truncar texto a 8 caracteres en móvil
   const truncateForMobile = (text: string) => {
-    if (text.length > 8) {
-      return text.substring(0, 8) + "...";
+    if (text.length > 20) {
+      return text.substring(0, 20) + "...";
     }
     return text;
   };
