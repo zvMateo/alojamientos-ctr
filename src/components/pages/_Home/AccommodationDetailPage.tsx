@@ -180,7 +180,7 @@ export default function AccommodationDetailPage() {
                   <img
                     src={
                       accommodation.imagenes &&
-                        accommodation.imagenes.length > 0
+                      accommodation.imagenes.length > 0
                         ? accommodation.imagenes[0]
                         : "/imagenpordefeto.jpg"
                     }
@@ -407,13 +407,13 @@ export default function AccommodationDetailPage() {
                       </Badge>
                     </div>
 
-                    <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                    {/* <div className="flex items-center justify-between py-3 border-b border-gray-100">
                       <span className="text-gray-600 font-medium">Estado:</span>
                       <span className="text-green-600 font-semibold flex items-center gap-1">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         {accommodation.estado}
                       </span>
-                    </div>
+                    </div> */}
 
                     {accommodation.categoria && (
                       <div className="flex items-center justify-between py-3">
