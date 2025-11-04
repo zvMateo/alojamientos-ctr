@@ -59,6 +59,8 @@ export default function ActivitiePage() {
   const [barResults, setBarResults] = useState<import("./types").Prestador[]>(
     []
   );
+  const [hasFiltersApplied, setHasFiltersApplied] = useState(false);
+  const [clearTrigger, setClearTrigger] = useState(0);
 
   const basePrestadores = useMemo<import("./types").Prestador[]>(() => {
     if (!selectedDepartamento) return [];
@@ -74,9 +76,9 @@ export default function ActivitiePage() {
   const filteredPrestadores = useMemo(() => {
     if (!selectedDepartamento) return [];
     // Si la barra devolvió resultados (filtros o búsqueda), usamos esos
-    if (barResults && barResults.length > 0) return barResults;
+    if (hasFiltersApplied) return barResults;
     return basePrestadores;
-  }, [selectedDepartamento, barResults, basePrestadores]);
+  }, [selectedDepartamento, barResults, basePrestadores, hasFiltersApplied]);
 
   const handleSelectDepartamento = (departamento: string) => {
     setSelectedDepartamento(departamento);
@@ -84,6 +86,15 @@ export default function ActivitiePage() {
 
   const handleDeselectDepartamento = () => {
     setSelectedDepartamento(null);
+    setHasFiltersApplied(false);
+    setBarResults([]);
+  };
+
+  const handleClearFilters = () => {
+    setHasFiltersApplied(false);
+    setBarResults([]);
+    setSelectedDepartamento(null);
+    setClearTrigger((prev) => prev + 1); // Incrementar para forzar limpieza en FilterBar
   };
 
   // Eliminados estados de carga/err globales (ahora se carga por departamento)
@@ -92,11 +103,17 @@ export default function ActivitiePage() {
     <div className="w-full h-screen bg-linear-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden relative">
       <FilterBar
         variant="activities"
-        onResults={setBarResults}
+        onResults={(results) => {
+          setBarResults(results);
+          setHasFiltersApplied(true);
+        }}
         basePrestadores={basePrestadores}
         onOpenPanel={() => {
-          if (!selectedDepartamento) setSelectedDepartamento("Resultados");
+          // Siempre abrir el panel cuando se aplican filtros
+          setSelectedDepartamento(selectedDepartamento || "Resultados");
         }}
+        onClearFilters={handleClearFilters}
+        clearTrigger={clearTrigger}
         panelOpen={!!selectedDepartamento}
       />
       {/* Mapa - Izquierda */}
@@ -129,7 +146,7 @@ export default function ActivitiePage() {
             transition={{ duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }}
             style={{
               width: isDesktop ? "55%" : "100%",
-              height: "calc(100vh - 120px)",
+              height: isDesktop ? "100%" : "calc(100vh - 120px)",
               zIndex: 50,
               top: isDesktop ? 0 : "auto",
               right: isDesktop ? 0 : "auto",
@@ -141,6 +158,8 @@ export default function ActivitiePage() {
               prestadores={filteredPrestadores}
               departamento={selectedDepartamento}
               onClosePanel={handleDeselectDepartamento}
+              onClearFilters={handleClearFilters}
+              hasFiltersApplied={hasFiltersApplied}
             />
           </motion.div>
         )}

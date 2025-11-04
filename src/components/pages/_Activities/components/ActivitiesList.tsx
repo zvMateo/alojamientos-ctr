@@ -8,10 +8,18 @@ interface ActivitiesListProps {
   prestadores: Prestador[];
   departamento: string;
   onClosePanel?: () => void;
+  onClearFilters?: () => void;
+  hasFiltersApplied?: boolean;
 }
 
 const ActivitiesList = memo(
-  ({ prestadores, departamento, onClosePanel }: ActivitiesListProps) => {
+  ({
+    prestadores,
+    departamento,
+    onClosePanel,
+    onClearFilters,
+    hasFiltersApplied = false,
+  }: ActivitiesListProps) => {
     const [searchTerm, setSearchTerm] = useState("");
     // const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,9 +43,9 @@ const ActivitiesList = memo(
     };
 
     return (
-      <div className="h-full flex flex-col bg-white">
-        {/* Header con gradiente */}
-        <div className="bg-linear-to-r from-primary to-pink-600 text-white p-6 shadow-lg">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
+        {/* Header con gradiente - fijo en la parte superior */}
+        <div className="shrink-0 bg-linear-to-r from-primary to-pink-600 text-white p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">Actividades</h1>
@@ -79,7 +87,7 @@ const ActivitiesList = memo(
         </div>
 
         {/* Contenido scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto min-h-0 p-6">
           {filteredPrestadores.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -88,20 +96,30 @@ const ActivitiesList = memo(
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 {searchTerm
                   ? "No se encontraron resultados"
+                  : hasFiltersApplied
+                  ? "No hay resultados con estos filtros"
                   : "No hay actividades en este departamento"}
               </h3>
               <p className="text-gray-500 max-w-md">
                 {searchTerm
                   ? `No hay prestadores que coincidan con "${searchTerm}".`
+                  : hasFiltersApplied
+                  ? "Intenta modificar o limpiar los filtros para ver más resultados."
                   : `Aún no hay actividades registradas en ${departamento}.`}
               </p>
               {!searchTerm && (
                 <div className="mt-6 flex items-center gap-3">
                   <button
-                    onClick={() => onClosePanel?.()}
+                    onClick={() => {
+                      if (hasFiltersApplied) {
+                        onClearFilters?.();
+                      } else {
+                        onClosePanel?.();
+                      }
+                    }}
                     className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                   >
-                    Volver al mapa
+                    {hasFiltersApplied ? "Limpiar filtros" : "Volver al mapa"}
                   </button>
                 </div>
               )}

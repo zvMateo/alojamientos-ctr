@@ -18,6 +18,8 @@ interface ActivitiesFilterBarProps {
   basePrestadores: Prestador[]; // para búsqueda por texto cuando no hay filtros API
   onOpenPanel?: () => void;
   panelOpen?: boolean;
+  onClearFilters?: () => void;
+  clearTrigger?: number; // Para forzar limpieza desde el padre
 }
 
 // hooks compartidos
@@ -28,6 +30,8 @@ const ActivitiesFilterBar = memo(
     basePrestadores,
     onOpenPanel,
     panelOpen,
+    onClearFilters,
+    clearTrigger = 0,
   }: ActivitiesFilterBarProps) => {
     const { data: localidadOptions = [], isLoading: isLoadingLoc } =
       useLocalidadesOptions();
@@ -38,6 +42,7 @@ const ActivitiesFilterBar = memo(
     const [activityId, setActivityId] = useState<number | undefined>(undefined);
     const [search, setSearch] = useState("");
     const [isFetchingFilters, setIsFetchingFilters] = useState(false);
+    const [resetKey, setResetKey] = useState(0);
     const [lastApplied, setLastApplied] = useState<{
       localityId?: number;
       activityId?: number;
@@ -65,6 +70,17 @@ const ActivitiesFilterBar = memo(
       }
     }, [panelOpen]);
 
+    // Limpiar cuando el padre lo indica mediante clearTrigger
+    useEffect(() => {
+      if (clearTrigger > 0) {
+        setLocalityId(undefined);
+        setActivityId(undefined);
+        setSearch("");
+        setLastApplied({ search: "" });
+        setResetKey((prev) => prev + 1);
+      }
+    }, [clearTrigger]);
+
     // Ejecutar filtros y/o búsqueda solo al presionar "Aplicar"
     const handleApply = useCallback(async () => {
       const s = search.trim().toLowerCase();
@@ -83,6 +99,7 @@ const ActivitiesFilterBar = memo(
         if (hasFilters) {
           const res = await getPrestadoresByFilters(localityId, activityId);
           onResults(res);
+          // Siempre abrir el panel, incluso si no hay resultados
           onOpenPanel?.();
           setLastApplied({ localityId, activityId, search });
           return;
@@ -103,6 +120,7 @@ const ActivitiesFilterBar = memo(
           return inNombre || inLocalidad || inActividad;
         });
         onResults(filtered);
+        // Siempre abrir el panel, incluso si no hay resultados
         onOpenPanel?.();
         setLastApplied({ localityId, activityId, search });
       } finally {
@@ -121,8 +139,11 @@ const ActivitiesFilterBar = memo(
       setLocalityId(undefined);
       setActivityId(undefined);
       setSearch("");
+      setLastApplied({ search: "" });
+      setResetKey((prev) => prev + 1);
       onResults([]);
-    }, [onResults]);
+      onClearFilters?.();
+    }, [onResults, onClearFilters]);
 
     return (
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm shadow-md border-b">
@@ -165,6 +186,7 @@ const ActivitiesFilterBar = memo(
           <div className="flex items-center gap-2 mt-2 md:mt-3">
             {/* Localidad */}
             <SelectApi
+              key={`locality-${resetKey}`}
               value={localityId?.toString()}
               onChange={(v) => setLocalityId(v ? parseInt(v) : undefined)}
               options={localidadOptions}
@@ -175,6 +197,7 @@ const ActivitiesFilterBar = memo(
 
             {/* Actividad */}
             <SelectApi
+              key={`activity-${resetKey}`}
               value={activityId?.toString()}
               onChange={(v) => setActivityId(v ? parseInt(v) : undefined)}
               options={actividadOptions}

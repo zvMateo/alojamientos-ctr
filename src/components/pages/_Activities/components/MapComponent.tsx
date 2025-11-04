@@ -53,6 +53,7 @@ const MapComponent = memo(function MapComponent({
   } | null>(null);
   const hoveredPathRef = useRef<SVGPathElement | null>(null);
 
+  // Cargar SVG de Córdoba (interactivo)
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -80,17 +81,17 @@ const MapComponent = memo(function MapComponent({
           if (isSelected) {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #FE9221; stroke: #fff; stroke-width: 5px; filter: drop-shadow(0 8px 16px rgba(215, 31, 51, 0.5)); transform: translateY(-40px);"
+              "cursor: pointer; fill: #FF6B35; stroke: #fff; stroke-width: 6px; filter: drop-shadow(0 12px 24px rgba(255, 107, 53, 0.4)) drop-shadow(0 6px 12px rgba(215, 31, 51, 0.3)); transform: scale(1.02);"
             );
           } else if (isHovered) {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #FE9221; stroke: #fff; stroke-width: 3.02px; opacity: 0.8;"
+              "cursor: pointer; fill: #FF8C42; stroke: #fff; stroke-width: 4px; transition: all 0.3s ease; filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3));"
             );
           } else {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #F1010C; stroke: #fff; stroke-width: 3.02px;"
+              "cursor: pointer; fill: #E63946; stroke: #fff; stroke-width: 2.5px; transition: all 0.3s ease;"
             );
           }
         };
@@ -186,20 +187,60 @@ const MapComponent = memo(function MapComponent({
   }, [prestadoresPorDepartamento, onSelectDepartamento, selectedDepartamento]);
 
   return (
-    <div className="pt-5 pb-5 w-full h-full relative bg-gray-50">
-      <div ref={svgRef} className="w-full h-full" />
+    <div className="pt-5 pb-5 w-full h-full relative overflow-hidden bg-linear-to-br from-slate-50 via-gray-50 to-slate-100">
+      {/* Imagen de fondo (mapa.jpg) - fondo de Argentina responsive */}
+      <img
+        src="/public/mapa.jpg"
+        className="absolute pointer-events-none w-full h-full object-cover md:object-contain"
+        style={{
+          zIndex: 0,
+          opacity: 0.5,
+          filter: "brightness(1.2) saturate(0.75) blur(0.2px)",
+          left: "48%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      />
+
+      {/* Overlay degradado para dar profundidad */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          zIndex: 0,
+          background:
+            "radial-gradient(circle at center, transparent 0%, rgba(255,255,255,0.3) 100%)",
+        }}
+      />
+
+      {/* SVG de Córdoba (interactivo) - con sombras pronunciadas para elevar sobre el fondo */}
+      <div
+        ref={svgRef}
+        className="absolute pointer-events-auto"
+        style={{
+          zIndex: 1,
+          width: "95%",
+          height: "95%",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          filter:
+            "drop-shadow(0 20px 5px rgba(0, 0, 0, 0.35)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.25)) drop-shadow(0 5px 15px rgba(215, 31, 51, 0.3)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.4))",
+        }}
+      />
 
       {tooltip && (
         <div
-          className="absolute text-white px-3 py-1 rounded text-sm z-50 shadow-lg pointer-events-none"
+          className="absolute text-white px-4 py-2 rounded-lg text-sm font-medium z-50 pointer-events-none backdrop-blur-sm"
           style={{
             left: tooltip.x,
             top: tooltip.y,
             transform: "translateX(-50%)",
-            backgroundColor: "#B853A7",
+            backgroundColor: "#AE65BE",
+            boxShadow:
+              "0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)",
           }}
         >
-          {tooltip.text}
+          <div className="flex items-center gap-2">{tooltip.text}</div>
         </div>
       )}
 

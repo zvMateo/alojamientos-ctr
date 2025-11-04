@@ -167,6 +167,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      spoilerjs:
+        specifier: ^0.2.0
+        version: 0.2.0
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -2479,6 +2482,10 @@ packages:
   source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
+
+  spoilerjs@0.2.0:
+    resolution: {integrity: sha512-dxUrQOf1EUcdBl0EM7I+idy2NVoyQQMYWKMvosE7B8DxMai14IwsGiV4QTC9ss8GrijPAS+VjbBl4rIRVFBWIQ==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
 
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
@@ -4843,6 +4850,8 @@ snapshots:
       source-map: 0.6.1
 
   source-map@0.6.1: {}
+
+  spoilerjs@0.2.0: {}
 
   strip-json-comments@3.1.1: {}
 

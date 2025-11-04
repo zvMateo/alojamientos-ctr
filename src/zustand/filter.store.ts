@@ -3,9 +3,9 @@ import { create } from "zustand";
 interface FilterState {
   selectedFilters: {
     tipo: number | null; // ID del tipo de alojamiento
-    localidad: string;
-    region: string;
-    estado: string;
+    localidad: string | null;
+    region: string | null;
+    estado: string | null;
   };
   searchTerm: string;
   isCarouselVisible: boolean;
@@ -19,9 +19,9 @@ interface FilterState {
 export const useFilterStore = create<FilterState>((set) => ({
   selectedFilters: {
     tipo: null,
-    localidad: "",
-    region: "",
-    estado: "",
+    localidad: null,
+    region: null,
+    estado: null,
   },
   searchTerm: "",
   isCarouselVisible: false, // Por defecto oculto
@@ -30,14 +30,7 @@ export const useFilterStore = create<FilterState>((set) => ({
     set((state) => ({
       selectedFilters: {
         ...state.selectedFilters,
-        [category]:
-          state.selectedFilters[
-            category as keyof typeof state.selectedFilters
-          ] === value
-            ? category === "tipo"
-              ? null
-              : ""
-            : value,
+        [category]: value,
       },
     }));
   },
@@ -58,9 +51,9 @@ export const useFilterStore = create<FilterState>((set) => ({
     set({
       selectedFilters: {
         tipo: null,
-        localidad: "",
-        region: "",
-        estado: "",
+        localidad: null,
+        region: null,
+        estado: null,
       },
       searchTerm: "",
     });

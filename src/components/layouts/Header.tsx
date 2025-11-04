@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Home, MapPin } from "lucide-react";
+import { Home, TargetIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
@@ -14,7 +14,7 @@ export default function Header() {
     {
       to: "/activities",
       label: "Actividades",
-      icon: MapPin,
+      icon: TargetIcon,
     },
   ];
 

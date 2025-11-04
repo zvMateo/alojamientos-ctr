@@ -48,10 +48,10 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
     }
   };
 
-  // Función para truncar texto a 4 letras en móvil
+  // Función para truncar texto a 8 caracteres en móvil
   const truncateForMobile = (text: string) => {
-    if (text.length > 4) {
-      return text.substring(0, 4) + "...";
+    if (text.length > 8) {
+      return text.substring(0, 8) + "...";
     }
     return text;
   };
@@ -132,29 +132,32 @@ const PropertyCard = memo(({ accommodation }: PropertyCardProps) => {
             </h3>
           </div>
 
-          {/* Información en 3 columnas en móvil - desktop vertical con iconos */}
+          {/* Información en vertical en móvil - desktop vertical con iconos */}
           <div className="md:space-y-1">
-            {/* Vista móvil - 3 columnas */}
-            <div className="flex md:hidden gap-1 text-[9px] text-gray-600">
-              <div className="flex-1 min-w-0 flex flex-col items-center text-center">
+            {/* Vista móvil - una columna vertical con iconos */}
+            <div className="flex md:hidden flex-col gap-0.5 text-[10px] text-gray-600">
+              <div className="flex items-center gap-1">
+                <Building className="h-2.5 w-2.5 text-primary/70 shrink-0" />
                 <span
-                  className="font-medium text-primary/80 mb-0.5 uppercase"
+                  className="font-medium text-primary/80 truncate"
                   title={tipoNombre}
                 >
                   {truncateForMobile(tipoNombre)}
                 </span>
               </div>
-              <div className="flex-1 min-w-0 flex flex-col items-center text-center">
+              <div className="flex items-center gap-1">
+                <MapPin className="h-2.5 w-2.5 text-primary/70 shrink-0" />
                 <span
-                  className="font-medium text-primary/80 mb-0.5 uppercase"
+                  className="font-medium text-gray-700 truncate"
                   title={localidad}
                 >
                   {truncateForMobile(localidad)}
                 </span>
               </div>
-              <div className="flex-1 min-w-0 flex flex-col items-center text-center">
+              <div className="flex items-center gap-1">
+                <Building className="h-2.5 w-2.5 text-gray-500 shrink-0" />
                 <span
-                  className="font-medium text-primary/80 mb-0.5 uppercase"
+                  className="text-gray-600 truncate"
                   title={direccion || "Sin dir"}
                 >
                   {truncateForMobile(direccion || "Sin dir")}

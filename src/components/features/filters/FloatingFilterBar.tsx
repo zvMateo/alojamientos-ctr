@@ -273,7 +273,8 @@ const FloatingFilterBar = memo(() => {
           {/* Filtros Básicos */}
           <div className="hidden md:flex items-center space-x-2">
             <Select
-              value={selectedFilters.tipo?.toString() || ""}
+              key={`tipo-${selectedFilters.tipo}`}
+              value={selectedFilters.tipo?.toString() ?? undefined}
               onValueChange={(value) =>
                 setFilter("tipo", value ? parseInt(value) : null)
               }
@@ -294,13 +295,14 @@ const FloatingFilterBar = memo(() => {
             </Select>
 
             <Select
-              value={selectedFilters.localidad}
-              onValueChange={(value) => setFilter("localidad", value)}
+              key={`localidad-${selectedFilters.localidad}`}
+              value={selectedFilters.localidad ?? undefined}
+              onValueChange={(value) => setFilter("localidad", value || null)}
               disabled={isLoadingOptions}
             >
               <SelectTrigger className="w-40 h-10">
                 <SelectValue
-                  placeholder={isLoadingOptions ? "Cargando..." : "Localidad"}
+                  placeholder={isLoadingOptions ? "Cargando..." : "Área"}
                 />
               </SelectTrigger>
               <SelectContent>
@@ -313,8 +315,9 @@ const FloatingFilterBar = memo(() => {
             </Select>
 
             <Select
-              value={selectedFilters.region}
-              onValueChange={(value) => setFilter("region", value)}
+              key={`region-${selectedFilters.region}`}
+              value={selectedFilters.region ?? undefined}
+              onValueChange={(value) => setFilter("region", value || null)}
               disabled={isLoadingOptions}
             >
               <SelectTrigger className="w-40 h-10">
@@ -506,7 +509,8 @@ const FloatingFilterBar = memo(() => {
           <div className="mt-4 pt-4 border-t border-gray-200 md:hidden">
             <div className="grid grid-cols-1 gap-3">
               <Select
-                value={selectedFilters.tipo?.toString() || ""}
+                key={`tipo-mobile-${selectedFilters.tipo}`}
+                value={selectedFilters.tipo?.toString() ?? undefined}
                 onValueChange={(value) =>
                   setFilter("tipo", value ? parseInt(value) : null)
                 }
@@ -529,8 +533,9 @@ const FloatingFilterBar = memo(() => {
               </Select>
 
               <Select
-                value={selectedFilters.localidad}
-                onValueChange={(value) => setFilter("localidad", value)}
+                key={`localidad-mobile-${selectedFilters.localidad}`}
+                value={selectedFilters.localidad ?? undefined}
+                onValueChange={(value) => setFilter("localidad", value || null)}
                 disabled={isLoadingOptions}
               >
                 <SelectTrigger className="h-10">
@@ -548,8 +553,9 @@ const FloatingFilterBar = memo(() => {
               </Select>
 
               <Select
-                value={selectedFilters.region}
-                onValueChange={(value) => setFilter("region", value)}
+                key={`region-mobile-${selectedFilters.region}`}
+                value={selectedFilters.region ?? undefined}
+                onValueChange={(value) => setFilter("region", value || null)}
                 disabled={isLoadingOptions}
               >
                 <SelectTrigger className="h-10">

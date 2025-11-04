@@ -10,7 +10,7 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       {/* Logo PNG por encima del footer */}
-      <div className="bg-[#F3F5F6] w-full overflow-hidden -mb-px">
+      <div className="bg-[#F9FAFB] w-full overflow-hidden -mb-px">
         <img
           src="/footercba.png"
           alt="Agencia Córdoba Turismo Logo"

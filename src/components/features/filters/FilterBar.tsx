@@ -12,6 +12,8 @@ type FilterBarProps =
       onResults: (prestadores: Prestador[]) => void;
       basePrestadores: Prestador[];
       onOpenPanel?: () => void;
+      onClearFilters?: () => void;
+      clearTrigger?: number;
       panelOpen?: boolean;
     };
 
@@ -24,6 +26,8 @@ const FilterBar = memo((props: FilterBarProps) => {
       onResults={props.onResults}
       basePrestadores={props.basePrestadores}
       onOpenPanel={props.onOpenPanel}
+      onClearFilters={props.onClearFilters}
+      clearTrigger={props.clearTrigger}
       panelOpen={props.panelOpen}
     />
   );

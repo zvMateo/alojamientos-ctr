@@ -15,8 +15,7 @@ const BRAND_GRADIENT =
 const SESSION_KEY = "chat_session_cba";
 const HISTORY_PREFIX = "chat_history_cba_";
 const SESSION_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 días
-const SEND_TIMEOUT_MS = 30_000;
-
+const SEND_TIMEOUT_MS = 180_000; // 120 segundos
 const makeMessage = (role: "user" | "assistant", content: string) => ({
   id: crypto.randomUUID(),
   role,
@@ -535,11 +534,6 @@ const ChatWidget = memo(function ChatWidget() {
       setIsSending(false);
     }
   }, [input, isSending, webhookUrl, sessionId]);
-
-  const chatSession = localStorage.getItem(
-    "chat_history_cba_8375b912-a5ab-40ec-924b-4f3532a72473"
-  );
-  console.log(chatSession);
 
   return (
     <>

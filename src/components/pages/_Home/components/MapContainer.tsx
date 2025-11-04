@@ -1,5 +1,5 @@
 import { APIProvider, Map, InfoWindow } from "@vis.gl/react-google-maps";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Accommodation } from "@/lib/schemas/accommodation.schema";
 import ClusteredAccommodationMarkers from "./clusterer-markers";
 import InfoWindowContent from "./InfoWindowContent";
@@ -21,6 +21,18 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export default function MapContainer({ filteredData = [] }: MapContainerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Verificar si hay API key
   const hasApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -78,7 +90,7 @@ export default function MapContainer({ filteredData = [] }: MapContainerProps) {
           disableDefaultUI={false}
           mapTypeControl={false}
           streetViewControl={true}
-          fullscreenControl={false}
+          fullscreenControl={isMobile}
         >
           <ClusteredAccommodationMarkers
             accommodations={visibleData}
@@ -104,7 +116,6 @@ export default function MapContainer({ filteredData = [] }: MapContainerProps) {
               </div>
             </InfoWindow>
           )}
-
         </Map>
       </APIProvider>
     </div>
