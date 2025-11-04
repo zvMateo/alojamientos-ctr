@@ -81,7 +81,7 @@ const MapComponent = memo(function MapComponent({
           if (isSelected) {
             path.setAttribute(
               "style",
-              "cursor: pointer; fill: #FF6B35; stroke: #fff; stroke-width: 6px; filter: drop-shadow(0 12px 24px rgba(255, 107, 53, 0.4)) drop-shadow(0 6px 12px rgba(215, 31, 51, 0.3)); transform: scale(1.02);"
+              "cursor: pointer; fill: #FF6B35; stroke: #fff; stroke-width: 6px; filter: drop-shadow(0 12px 24px rgba(255, 107, 53, 0.4)) drop-shadow(0 6px 12px rgba(215, 31, 51, 0.3));"
             );
           } else if (isHovered) {
             path.setAttribute(
@@ -187,10 +187,13 @@ const MapComponent = memo(function MapComponent({
   }, [prestadoresPorDepartamento, onSelectDepartamento, selectedDepartamento]);
 
   return (
-    <div className="pt-5 pb-5 w-full h-full relative overflow-hidden bg-linear-to-br from-slate-50 via-gray-50 to-slate-100">
+    <div
+      className="pt-5 pb-5 w-full h-full relative overflow-hidden"
+      style={{ backgroundColor: "#FCFCFD" }}
+    >
       {/* Imagen de fondo (mapa.jpg) - fondo de Argentina responsive */}
       <img
-        src="/mapa.jpg"
+        src="/mapa copia.jpg"
         className="absolute pointer-events-none w-full h-full object-cover md:object-contain"
         style={{
           zIndex: 0,
@@ -212,7 +215,7 @@ const MapComponent = memo(function MapComponent({
         }}
       />
 
-      {/* SVG de Córdoba (interactivo) - con sombras pronunciadas para elevar sobre el fondo */}
+      {/* SVG de Córdoba (interactivo) - con sombras sutiles en escala de grises */}
       <div
         ref={svgRef}
         className="absolute pointer-events-auto"
@@ -224,7 +227,7 @@ const MapComponent = memo(function MapComponent({
           top: "50%",
           transform: "translate(-50%, -50%)",
           filter:
-            "drop-shadow(0 20px 5px rgba(0, 0, 0, 0.35)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.25)) drop-shadow(0 5px 15px rgba(215, 31, 51, 0.3)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.4))",
+            " drop-shadow(0 8px 16px rgba(0, 0, 0, 0.20)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.03))",
         }}
       />
 
@@ -237,7 +240,7 @@ const MapComponent = memo(function MapComponent({
             transform: "translateX(-50%)",
             backgroundColor: "#AE65BE",
             boxShadow:
-              "0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+              "0 8px 24px rgba(117,117,117,0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)",
           }}
         >
           <div className="flex items-center gap-2">{tooltip.text}</div>

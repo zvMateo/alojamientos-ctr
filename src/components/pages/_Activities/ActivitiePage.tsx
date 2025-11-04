@@ -100,7 +100,10 @@ export default function ActivitiePage() {
   // Eliminados estados de carga/err globales (ahora se carga por departamento)
 
   return (
-    <div className="w-full h-screen bg-linear-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden relative">
+    <div
+      className="w-full h-screen flex flex-col overflow-hidden relative"
+      style={{ backgroundColor: "#FCFCFD" }}
+    >
       <FilterBar
         variant="activities"
         onResults={(results) => {
