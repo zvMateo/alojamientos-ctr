@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Accommodation } from "@/lib/schemas/accommodation.schema";
+import type { Accommodation } from "@/features/accommodations";
 
 interface SearchSuggestion {
   id: string;

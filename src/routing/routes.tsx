@@ -1,17 +1,15 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import HomePage from "@/components/pages/_Home/HomePage";
-import PublicLayout from "@/components/layouts/PublicLayout";
+import HomePage from "@/pages/HomePage";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 // Lazy loading para la página de detalle
 const AccommodationDetailPage = lazy(
-  () => import("@/components/pages/_Home/AccommodationDetailPage")
+  () => import("@/pages/AccommodationDetailPage")
 );
 
 // Lazy loading para la página de actividades
-const ActivitiesPage = lazy(
-  () => import("@/components/pages/_Activities/ActivitiePage.tsx")
-);
+const ActivitiesPage = lazy(() => import("@/pages/ActivitiesPage"));
 
 // Componente de loading para Suspense
 const PageLoading = () => (
