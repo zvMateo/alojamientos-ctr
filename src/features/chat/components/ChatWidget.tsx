@@ -55,7 +55,8 @@ const ChatWidget = memo(function ChatWidget() {
   const setSelectedAccommodationId = useMapStore(
     (s) => s.setSelectedAccommodationId
   );
-  // Contador para detectar doble backspace/delete adyacente a un span de alojamiento
+
+  // Estado para rastrear intención de borrado en un span
   const deleteIntentRef = useRef<{
     span: HTMLElement | null;
     count: number;
@@ -133,6 +134,10 @@ const ChatWidget = memo(function ChatWidget() {
             key={`accommodation-${id}-${matchIndex}`}
             onClick={() => {
               setSelectedAccommodationId(id);
+              // En mobile, cerrar el chat para ver bien el InfoWindow
+              if (window.innerWidth < 640) {
+                closeChat();
+              }
             }}
             className="font-bold text-primary hover:text-primary/80 underline decoration-primary hover:decoration-primary/80 transition-colors cursor-pointer"
           >
@@ -210,7 +215,7 @@ const ChatWidget = memo(function ChatWidget() {
         </div>
       );
     },
-    [setSelectedAccommodationId]
+    [setSelectedAccommodationId, closeChat]
   );
 
   // Sincronizar inputMessage del store con el input local
@@ -231,7 +236,7 @@ const ChatWidget = memo(function ChatWidget() {
         lastAccommodationName &&
         storeMessage.length > currentText.length
       ) {
-        // Usar el nombre exacto del store, no calcular con substring
+        // Usar el nombre exacto del store
         const newName = lastAccommodationName;
 
         // Agregar espacio antes si es necesario
@@ -246,42 +251,17 @@ const ChatWidget = memo(function ChatWidget() {
         const span = document.createElement("span");
         span.className =
           "font-bold text-primary underline decoration-primary accommodation-name";
+        // NO editable: completamente bloqueado
         span.contentEditable = "false";
         span.setAttribute("data-accommodation-id", String(lastId));
         span.setAttribute("data-original-name", newName);
         span.textContent = newName;
-        // Hacer el span COMPLETAMENTE inmutable
-        span.style.userSelect = "none";
         span.style.cursor = "default";
         span.style.display = "inline-block";
         span.style.whiteSpace = "nowrap";
-        // Prevenir que el span sea editable de cualquier forma
-        span.setAttribute("unselectable", "on");
+        span.style.userSelect = "all"; // Permitir selección completa
         span.setAttribute("role", "button");
         span.setAttribute("tabindex", "-1");
-
-        // Evitar que el cursor entre al span: moverlo inmediatamente después del span
-        const placeCaretAfter = () => {
-          const range = document.createRange();
-          range.setStartAfter(span);
-          range.collapse(true);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-          inputRef.current?.focus();
-        };
-        span.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          placeCaretAfter();
-        });
-        span.addEventListener("touchstart", (e) => {
-          e.preventDefault();
-          placeCaretAfter();
-        });
-        span.addEventListener("click", (e) => {
-          e.preventDefault();
-          placeCaretAfter();
-        });
 
         inputRef.current.appendChild(span);
         inputRef.current.appendChild(document.createTextNode(" "));
@@ -307,44 +287,10 @@ const ChatWidget = memo(function ChatWidget() {
     }
   }, [inputMessage, isOpen, openChat]);
 
-  // Detectar cuando se intenta borrar un span de alojamiento
-  useEffect(() => {
-    if (!inputRef.current) return;
-
-    const inputElement = inputRef.current;
-
-    // Observer para detectar CUALQUIER cambio en el DOM
-    const observer = new MutationObserver(() => {
-      // Verificar todos los spans después de cualquier mutación
-      const accommodationSpans = inputElement.querySelectorAll(
-        ".accommodation-name[data-original-name]"
-      );
-
-      accommodationSpans.forEach((span) => {
-        const originalName = span.getAttribute("data-original-name") || "";
-        const currentText = span.textContent || "";
-
-        // Si el texto cambió, eliminar el span completo
-        if (originalName !== currentText) {
-          span.remove();
-          setInput(inputElement.textContent || "");
-        }
-      });
-    });
-
-    observer.observe(inputElement, {
-      characterData: true,
-      characterDataOldValue: true,
-      childList: true,
-      subtree: true,
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  // Manejar Backspace/Delete adyacente a un nombre de alojamiento: borra todo el nombre tras 2 pulsaciones
+  // ====================================================================
+  // IMPLEMENTACIÓN DE LA REGLA DE ELIMINACIÓN PRECISA
+  // Regla: Al presionar Backspace/Delete 2 veces cerca del span, eliminarlo
+  // ====================================================================
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -357,24 +303,28 @@ const ChatWidget = memo(function ChatWidget() {
       return !!(
         n &&
         n.nodeType === Node.ELEMENT_NODE &&
-        (n as HTMLElement).classList?.contains("accommodation-name")
+        (n as HTMLElement).classList?.contains("accommodation-name") &&
+        (n as HTMLElement).hasAttribute("data-original-name")
       );
     };
 
-    const findAdjacentAccommodationSpan = (
-      range: Range,
-      dir: "back" | "del"
-    ): HTMLElement | null => {
+    // Detectar si el caret está justo antes/después de un span (adyacente)
+    const findAdjacentAccommodationSpan = (dir: "back" | "del"): HTMLElement | null => {
+      const sel = window.getSelection?.();
+      if (!sel || sel.rangeCount === 0) return null;
+      const range = sel.getRangeAt(0);
       const node = range.startContainer;
       const offset = range.startOffset;
 
       if (node.nodeType === Node.TEXT_NODE) {
         const textNode = node as Text;
         if (dir === "back") {
+          // Backspace: caret al inicio del textNode, span es previousSibling
           if (offset !== 0) return null;
           const cand = textNode.previousSibling;
           return isAccommodationSpan(cand) ? (cand as HTMLElement) : null;
         } else {
+          // Delete: caret al final del textNode, span es nextSibling
           if (offset !== (textNode.textContent?.length || 0)) return null;
           const cand = textNode.nextSibling;
           return isAccommodationSpan(cand) ? (cand as HTMLElement) : null;
@@ -393,29 +343,65 @@ const ChatWidget = memo(function ChatWidget() {
       return null;
     };
 
-    const removeSpanAndCleanup = (span: HTMLElement, dir: "back" | "del") => {
-      // También limpiar un espacio adyacente (el que insertamos al crear el span)
-      if (dir === "back") {
-        const next = span.nextSibling;
-        if (
-          next &&
-          next.nodeType === Node.TEXT_NODE &&
-          (next as Text).textContent === " "
-        ) {
-          next.parentNode?.removeChild(next);
-        }
-      } else {
-        const prev = span.previousSibling;
-        if (prev && prev.nodeType === Node.TEXT_NODE) {
-          const t = (prev as Text).textContent || "";
-          if (t === " ") {
-            prev.parentNode?.removeChild(prev);
+    // Detectar selecciones que cubren 2+ caracteres del final del span
+    const getSelectionCoveringSpanEnd = (): {
+      span: HTMLElement;
+      charsSelected: number;
+    } | null => {
+      const sel = window.getSelection?.();
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+
+      const range = sel.getRangeAt(0);
+      const selectedText = range.toString();
+
+      // Solo procesar si se seleccionaron 2+ caracteres
+      if (selectedText.length < 2) return null;
+
+      // Buscar span de alojamiento en el ancestro
+      let candidate: Node | null = range.commonAncestorContainer;
+      while (candidate && candidate !== el) {
+        if (isAccommodationSpan(candidate)) {
+          const span = candidate as HTMLElement;
+          const spanText = span.textContent || "";
+
+          // Verificar que la selección termina al final del span
+          const endNode = range.endContainer;
+          const endOffset = range.endOffset;
+
+          if (endNode.nodeType === Node.TEXT_NODE && endNode.parentNode === span) {
+            const endText = endNode.textContent || "";
+            if (endOffset === endText.length) {
+              return { span, charsSelected: selectedText.length };
+            }
+          }
+
+          // O si la selección cubre todo el span
+          if (selectedText === spanText && selectedText.length >= 2) {
+            return { span, charsSelected: selectedText.length };
           }
         }
+        candidate = candidate.parentNode;
       }
+      return null;
+    };
+
+    const removeSpanAndCleanup = (span: HTMLElement) => {
+      // Limpiar espacios adyacentes
+      const next = span.nextSibling;
+      const prev = span.previousSibling;
+
+      if (next && next.nodeType === Node.TEXT_NODE && (next as Text).textContent === " ") {
+        next.parentNode?.removeChild(next);
+      }
+      if (prev && prev.nodeType === Node.TEXT_NODE && (prev as Text).textContent === " ") {
+        prev.parentNode?.removeChild(prev);
+      }
+
       span.remove();
-      // Actualizar estado y mantener el foco/cursor
       setInput(el.textContent || "");
+      resetIntent();
+
+      // Posicionar caret al final
       el.focus();
       const sel = window.getSelection?.();
       if (sel) {
@@ -428,68 +414,92 @@ const ChatWidget = memo(function ChatWidget() {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      const sel = window.getSelection?.();
-      if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) {
-        resetIntent();
-        return;
-      }
-      const range = sel.getRangeAt(0);
+      const now = Date.now();
+      const prev = deleteIntentRef.current;
 
-      if (e.key === "Backspace" || e.key === "Delete") {
-        const dir = e.key === "Backspace" ? "back" : "del";
-        const span = findAdjacentAccommodationSpan(range, dir);
-        if (span) {
+      if (e.key === "Backspace") {
+        const targetSpan = findAdjacentAccommodationSpan("back");
+        if (targetSpan) {
           e.preventDefault();
-          const now = Date.now();
-          const prev = deleteIntentRef.current;
+          // Verificar si es el segundo borrado del mismo span
           if (
-            prev.span === span &&
-            prev.dir === dir &&
+            prev.span === targetSpan &&
+            prev.dir === "back" &&
             now - prev.ts < 1200 &&
             prev.count >= 1
           ) {
-            removeSpanAndCleanup(span, dir);
-            resetIntent();
-            return;
+            // Segundo Backspace: eliminar span completo
+            removeSpanAndCleanup(targetSpan);
           } else {
-            deleteIntentRef.current = { span, count: 1, ts: now, dir };
-            return;
+            // Primer Backspace: registrar intención
+            deleteIntentRef.current = {
+              span: targetSpan,
+              count: 1,
+              ts: now,
+              dir: "back",
+            };
           }
-        } else {
-          resetIntent();
+          return;
         }
-      } else {
-        // Cualquier otra tecla cancela la intención
+      } else if (e.key === "Delete") {
+        const targetSpan = findAdjacentAccommodationSpan("del");
+        if (targetSpan) {
+          e.preventDefault();
+          // Verificar si es el segundo borrado del mismo span
+          if (
+            prev.span === targetSpan &&
+            prev.dir === "del" &&
+            now - prev.ts < 1200 &&
+            prev.count >= 1
+          ) {
+            // Segundo Delete: eliminar span completo
+            removeSpanAndCleanup(targetSpan);
+          } else {
+            // Primer Delete: registrar intención
+            deleteIntentRef.current = {
+              span: targetSpan,
+              count: 1,
+              ts: now,
+              dir: "del",
+            };
+          }
+          return;
+        }
+      }
+
+      // Cancelar intención si se presiona cualquier otra tecla
+      if (e.key !== "Backspace" && e.key !== "Delete") {
         resetIntent();
       }
     };
 
-    const onSelectionChange = () => {
+    const onBeforeInput = (e: InputEvent) => {
       const sel = window.getSelection?.();
       if (!sel || sel.rangeCount === 0) return;
-      const r = sel.getRangeAt(0);
-      // Si el caret cayó dentro de un span de alojamiento, muévelo afuera
-      let node: Node | null = r.startContainer;
-      while (node && node !== el) {
-        if (isAccommodationSpan(node)) {
-          const range = document.createRange();
-          range.setStartAfter(node);
-          range.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(range);
-          el.focus();
-          resetIntent();
-          break;
+
+      // CASO: Selección que incluye un span completo o parte de él
+      if (!sel.isCollapsed) {
+        const selectionInfo = getSelectionCoveringSpanEnd();
+        if (selectionInfo && selectionInfo.charsSelected >= 2) {
+          if (
+            e.inputType === "deleteContentBackward" ||
+            e.inputType === "deleteContentForward"
+          ) {
+            e.preventDefault();
+            removeSpanAndCleanup(selectionInfo.span);
+            return;
+          }
         }
-        node = (node as Node).parentNode;
       }
     };
 
     el.addEventListener("keydown", onKeyDown as EventListener);
-    document.addEventListener("selectionchange", onSelectionChange);
+    el.addEventListener("beforeinput", onBeforeInput as EventListener);
+
     return () => {
       el.removeEventListener("keydown", onKeyDown as EventListener);
-      document.removeEventListener("selectionchange", onSelectionChange);
+      el.removeEventListener("beforeinput", onBeforeInput as EventListener);
+      resetIntent();
     };
   }, [setInput]);
 
@@ -507,14 +517,14 @@ const ChatWidget = memo(function ChatWidget() {
         rect.width > 0
           ? rect.width
           : isMobile
-          ? window.innerWidth - 32
-          : Math.min(window.innerWidth * 0.92, 384);
+            ? window.innerWidth - 32
+            : Math.min(window.innerWidth * 0.92, 384);
       const panelHeight =
         rect.height > 0
           ? rect.height
           : isMobile
-          ? Math.min(window.innerHeight * 0.85, window.innerHeight - 32)
-          : Math.min(window.innerHeight * 0.7, 620);
+            ? Math.min(window.innerHeight * 0.85, window.innerHeight - 32)
+            : Math.min(window.innerHeight * 0.7, 620);
       const margin = 16;
       const btnSize = 48;
 

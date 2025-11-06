@@ -9,34 +9,51 @@
   /* === TEMA CLARO - Tu Paleta Definitiva === */
 
   /* Color Principal (Acento) */
-  --primary: oklch(0.548 0.217 17.38); /* #d71f33 */
-  --primary-foreground: oklch(1 0 0); /* #FFFFFF */
+  --primary: oklch(0.548 0.217 17.38);
+  /* #d71f33 */
+  --primary-foreground: oklch(1 0 0);
+  /* #FFFFFF */
 
   /* Escala de Grises Cálida (Tema Claro) */
-  --background: oklch(0.98 0.005 60); /* #FAFAF9 - Fondo Principal (Body) */
-  --foreground: oklch(0.145 0.01 20); /* #1C1917 - Títulos y Texto Fuerte */
+  --background: oklch(0.98 0.005 60);
+  /* #FAFAF9 - Fondo Principal (Body) */
+  --foreground: oklch(0.145 0.01 20);
+  /* #1C1917 - Títulos y Texto Fuerte */
 
-  --card: oklch(0.96 0.005 60); /* #F5F5F4 - Fondos de Secciones (Cards) */
-  --card-foreground: oklch(0.145 0.01 20); /* #1C1917 */
+  --card: oklch(0.96 0.005 60);
+  /* #F5F5F4 - Fondos de Secciones (Cards) */
+  --card-foreground: oklch(0.145 0.01 20);
+  /* #1C1917 */
 
-  --popover: oklch(0.98 0.005 60); /* #FAFAF9 */
-  --popover-foreground: oklch(0.145 0.01 20); /* #1C1917 */
+  --popover: oklch(0.98 0.005 60);
+  /* #FAFAF9 */
+  --popover-foreground: oklch(0.145 0.01 20);
+  /* #1C1917 */
 
-  --secondary: oklch(0.96 0.005 60); /* #F5F5F4 */
-  --secondary-foreground: oklch(0.145 0.01 20); /* #1C1917 */
+  --secondary: oklch(0.96 0.005 60);
+  /* #F5F5F4 */
+  --secondary-foreground: oklch(0.145 0.01 20);
+  /* #1C1917 */
 
-  --muted: oklch(0.9 0.01 20); /* #E7E5E4 - Bordes y Divisores */
-  --muted-foreground: oklch(0.65 0.01 25); /* #A8A29E - Texto Sutil */
+  --muted: oklch(0.9 0.01 20);
+  /* #E7E5E4 - Bordes y Divisores */
+  --muted-foreground: oklch(0.65 0.01 25);
+  /* #A8A29E - Texto Sutil */
 
-  --accent: oklch(0.96 0.005 60); /* #F5F5F4 */
-  --accent-foreground: oklch(0.145 0.01 20); /* #1C1917 */
+  --accent: oklch(0.96 0.005 60);
+  /* #F5F5F4 */
+  --accent-foreground: oklch(0.145 0.01 20);
+  /* #1C1917 */
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.9 0.01 20); /* #E7E5E4 */
-  --input: oklch(0.9 0.01 20); /* #E7E5E4 */
-  --ring: oklch(0.548 0.217 17.38); /* #d71f33 */
+  --border: oklch(0.9 0.01 20);
+  /* #E7E5E4 */
+  --input: oklch(0.9 0.01 20);
+  /* #E7E5E4 */
+  --ring: oklch(0.548 0.217 17.38);
+  /* #d71f33 */
 
   /* Charts (mantener los existentes) */
   --chart-1: oklch(0.646 0.222 41.116);
@@ -60,35 +77,52 @@
   /* === TEMA OSCURO - Tu Paleta Definitiva === */
 
   /* Color Principal (Botones y Acentos Fuertes) */
-  --primary: oklch(0.548 0.217 17.38); /* #d71f33 */
-  --primary-foreground: oklch(1 0 0); /* #FFFFFF */
+  --primary: oklch(0.548 0.217 17.38);
+  /* #d71f33 */
+  --primary-foreground: oklch(1 0 0);
+  /* #FFFFFF */
 
   /* Color de Acento Secundario (Enlaces de texto, iconos) */
-  --secondary: oklch(0.6 0.15 17.38); /* #E64A5A */
-  --secondary-foreground: oklch(1 0 0); /* #FFFFFF */
+  --secondary: oklch(0.6 0.15 17.38);
+  /* #E64A5A */
+  --secondary-foreground: oklch(1 0 0);
+  /* #FFFFFF */
 
   /* Escala de Grises Cálida (Tema Oscuro) */
-  --background: oklch(0.145 0.01 20); /* #1C1917 - Fondo Principal (Body) */
-  --foreground: oklch(0.98 0.005 60); /* #FAFAF9 - Títulos y Texto Fuerte */
+  --background: oklch(0.145 0.01 20);
+  /* #1C1917 - Fondo Principal (Body) */
+  --foreground: oklch(0.98 0.005 60);
+  /* #FAFAF9 - Títulos y Texto Fuerte */
 
-  --card: oklch(0.25 0.01 20); /* #44403C - Fondos de Secciones (Cards) */
-  --card-foreground: oklch(0.9 0.01 20); /* #E7E5E4 - Texto Principal */
+  --card: oklch(0.25 0.01 20);
+  /* #44403C - Fondos de Secciones (Cards) */
+  --card-foreground: oklch(0.9 0.01 20);
+  /* #E7E5E4 - Texto Principal */
 
-  --popover: oklch(0.145 0.01 20); /* #1C1917 */
-  --popover-foreground: oklch(0.98 0.005 60); /* #FAFAF9 */
+  --popover: oklch(0.145 0.01 20);
+  /* #1C1917 */
+  --popover-foreground: oklch(0.98 0.005 60);
+  /* #FAFAF9 */
 
-  --muted: oklch(0.35 0.01 25); /* #57534E - Bordes y Divisores */
-  --muted-foreground: oklch(0.65 0.01 25); /* #A8A29E - Texto Sutil */
+  --muted: oklch(0.35 0.01 25);
+  /* #57534E - Bordes y Divisores */
+  --muted-foreground: oklch(0.65 0.01 25);
+  /* #A8A29E - Texto Sutil */
 
-  --accent: oklch(0.25 0.01 20); /* #44403C */
-  --accent-foreground: oklch(0.9 0.01 20); /* #E7E5E4 */
+  --accent: oklch(0.25 0.01 20);
+  /* #44403C */
+  --accent-foreground: oklch(0.9 0.01 20);
+  /* #E7E5E4 */
 
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.35 0.01 25); /* #57534E */
-  --input: oklch(0.35 0.01 25); /* #57534E */
-  --ring: oklch(0.6 0.15 17.38); /* #E64A5A */
+  --border: oklch(0.35 0.01 25);
+  /* #57534E */
+  --input: oklch(0.35 0.01 25);
+  /* #57534E */
+  --ring: oklch(0.6 0.15 17.38);
+  /* #E64A5A */
 
   /* Charts (mantener los existentes) */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -170,12 +204,15 @@
 
 /* Utilidades personalizadas */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 /* Efecto de nebulosa animada para el botón del chat */
@@ -184,18 +221,22 @@
     transform: translate(0%, 0%) scale(1) rotate(0deg);
     opacity: 0.6;
   }
+
   25% {
     transform: translate(15%, -15%) scale(1.15) rotate(90deg);
     opacity: 0.8;
   }
+
   50% {
     transform: translate(-15%, 15%) scale(0.85) rotate(180deg);
     opacity: 0.7;
   }
+
   75% {
     transform: translate(10%, 10%) scale(1.05) rotate(270deg);
     opacity: 0.75;
   }
+
   100% {
     transform: translate(0%, 0%) scale(1) rotate(360deg);
     opacity: 0.6;
@@ -205,4 +246,17 @@
 .chat-button-nebula {
   animation: nebula 10s ease-in-out infinite;
   will-change: transform, opacity;
+}
+
+/* Animación suave para el panel de actividades en mobile */
+@keyframes slideUpSmooth {
+  0% {
+    transform: translateY(100%);
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

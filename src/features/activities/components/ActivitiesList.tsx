@@ -43,7 +43,13 @@ const ActivitiesList = memo(
     };
 
     return (
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div
+        className="fixed inset-0 lg:relative lg:h-full flex flex-col bg-white overflow-hidden z-50 lg:z-auto overscroll-contain"
+        style={{
+          animation: window.innerWidth < 1024 ? 'slideUpSmooth 0.35s ease-out forwards' : 'none',
+          willChange: window.innerWidth < 1024 ? 'transform, opacity' : 'auto',
+        }}
+      >
         {/* Header con gradiente - fijo en la parte superior */}
         <div className="shrink-0 bg-linear-to-r from-primary to-pink-600 text-white p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
@@ -87,7 +93,7 @@ const ActivitiesList = memo(
         </div>
 
         {/* Contenido scrollable */}
-        <div className="flex-1 overflow-y-auto min-h-0 p-6">
+        <div className="flex-1 overflow-y-auto min-h-0 p-6 overscroll-contain">
           {filteredPrestadores.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -97,15 +103,15 @@ const ActivitiesList = memo(
                 {searchTerm
                   ? "No se encontraron resultados"
                   : hasFiltersApplied
-                  ? "No hay resultados con estos filtros"
-                  : "No hay actividades en este departamento"}
+                    ? "No hay resultados con estos filtros"
+                    : "No hay actividades en este departamento"}
               </h3>
               <p className="text-gray-500 max-w-md">
                 {searchTerm
                   ? `No hay prestadores que coincidan con "${searchTerm}".`
                   : hasFiltersApplied
-                  ? "Intenta modificar o limpiar los filtros para ver más resultados."
-                  : `Aún no hay actividades registradas en ${departamento}.`}
+                    ? "Intenta modificar o limpiar los filtros para ver más resultados."
+                    : `Aún no hay actividades registradas en ${departamento}.`}
               </p>
               {!searchTerm && (
                 <div className="mt-6 flex items-center gap-3">
