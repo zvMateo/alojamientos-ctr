@@ -1,11 +1,13 @@
 import { APIProvider, Map, InfoWindow } from "@vis.gl/react-google-maps";
 import { useState, useMemo, useEffect } from "react";
+import { useMapStore } from "../store/map.store";
 import type { Accommodation } from "../schemas/accommodation.schema";
 import ClusteredAccommodationMarkers from "./ClusteredAccommodationMarkers";
 import InfoWindowContent from "./InfoWindowContent";
 
 interface MapContainerProps {
   filteredData?: Accommodation[];
+  allData?: Accommodation[];
 }
 
 const containerStyle: React.CSSProperties = {
@@ -19,7 +21,10 @@ const defaultCenter = { lat: -31.4201, lng: -64.1888 };
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-export default function MapContainer({ filteredData = [] }: MapContainerProps) {
+export default function MapContainer({
+  filteredData = [],
+  allData = [],
+}: MapContainerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" && window.innerWidth < 768
@@ -46,6 +51,28 @@ export default function MapContainer({ filteredData = [] }: MapContainerProps) {
   const handleMarkerClick = (accommodation: Accommodation) => {
     setSelectedId(accommodation.id);
   };
+
+  // React to external requests to open an accommodation (from chat links)
+  const externalSelectedId = useMapStore((s) => s.selectedAccommodationId);
+  const clearExternalSelection = useMapStore(
+    (s) => s.setSelectedAccommodationId
+  );
+
+  useEffect(() => {
+    if (externalSelectedId) {
+      // Buscar el alojamiento en allData primero, luego en filteredData
+      const accommodation =
+        allData.find((a) => a.id === externalSelectedId) ||
+        filteredData.find((a) => a.id === externalSelectedId);
+
+      if (accommodation) {
+        setSelectedId(externalSelectedId);
+        // Limpiar el store para permitir futuras selecciones del mismo ID
+        clearExternalSelection(null);
+        // Opcional: Hacer zoom/centrar en el alojamiento
+      }
+    }
+  }, [externalSelectedId, allData, filteredData, clearExternalSelection]);
 
   if (!hasApiKey) {
     return (
@@ -97,25 +124,26 @@ export default function MapContainer({ filteredData = [] }: MapContainerProps) {
             onMarkerClick={handleMarkerClick}
           />
 
-          {selectedId && (
-            <InfoWindow
-              position={
-                visibleData.find((a) => a.id === selectedId)?.coordenadas
-              }
-              onCloseClick={() => setSelectedId(null)}
-            >
-              <div className="p-0 max-w-sm">
-                {(() => {
-                  const alojamiento = visibleData.find(
-                    (a) => a.id === selectedId
-                  );
-                  if (!alojamiento) return null;
+          {selectedId &&
+            (() => {
+              // Buscar primero en allData, luego en visibleData
+              const alojamiento =
+                allData.find((a) => a.id === selectedId) ||
+                visibleData.find((a) => a.id === selectedId);
 
-                  return <InfoWindowContent accommodation={alojamiento} />;
-                })()}
-              </div>
-            </InfoWindow>
-          )}
+              if (!alojamiento) return null;
+
+              return (
+                <InfoWindow
+                  position={alojamiento.coordenadas}
+                  onCloseClick={() => setSelectedId(null)}
+                >
+                  <div className="p-0 max-w-sm bg-transparent">
+                    <InfoWindowContent accommodation={alojamiento} />
+                  </div>
+                </InfoWindow>
+              );
+            })()}
         </Map>
       </APIProvider>
     </div>

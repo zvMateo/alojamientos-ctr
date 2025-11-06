@@ -66,7 +66,7 @@ export default function HomePage() {
     <div className="w-full h-screen flex flex-col relative">
       <FilterBar />
       <div className="flex-1 relative">
-        <MapContainer filteredData={filteredData} />
+        <MapContainer filteredData={filteredData} allData={data} />
         <AccommodationCarousel />
       </div>
     </div>

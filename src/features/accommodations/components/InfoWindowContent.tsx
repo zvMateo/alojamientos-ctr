@@ -48,7 +48,7 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl border-0 overflow-hidden">
+    <div className="bg-white rounded-xl border-0 overflow-hidden">
       {/* Header con gradiente */}
       <div
         className="px-4 py-3 text-white relative"
