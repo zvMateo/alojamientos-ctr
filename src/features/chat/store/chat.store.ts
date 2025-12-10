@@ -5,6 +5,7 @@ interface ChatState {
   inputMessage: string;
   accommodationIds: (string | number)[]; // Lista de IDs de alojamientos agregados
   lastAccommodationName: string | null; // Último nombre agregado
+  triggerSend: boolean; // Flag para disparar el envío automático
   openChat: () => void;
   closeChat: () => void;
   setInputMessage: (message: string) => void;
@@ -13,6 +14,7 @@ interface ChatState {
     accommodationId: string | number
   ) => void;
   clearInput: () => void;
+  setTriggerSend: (trigger: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -20,6 +22,7 @@ export const useChatStore = create<ChatState>((set) => ({
   inputMessage: "",
   accommodationIds: [],
   lastAccommodationName: null,
+  triggerSend: false,
   openChat: () => set({ isOpen: true }),
   closeChat: () => set({ isOpen: false }),
   setInputMessage: (message: string) => set({ inputMessage: message }),
@@ -45,4 +48,5 @@ export const useChatStore = create<ChatState>((set) => ({
       accommodationIds: [],
       lastAccommodationName: null,
     }),
+  setTriggerSend: (trigger: boolean) => set({ triggerSend: trigger }),
 }));

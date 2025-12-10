@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ChatWidget } from "@/features/chat";
 import { ToastProvider } from "@/components/ui/toast";
+import ItineraryModal from "@/features/accommodations/components/ItineraryModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ function App() {
       <ToastProvider>
         <Router />
         <ChatWidget />
+        <ItineraryModal />
         {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       </ToastProvider>
     </QueryClientProvider>

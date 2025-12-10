@@ -98,7 +98,6 @@ const getImageUrl = (imagePath: string): string => {
 // Helper para verificar si una imagen es válida (no es la imagen por defecto que no existe)
 const isValidImage = (imagePath: string): boolean => {
   if (!imagePath) {
-    console.log("🖼️ No hay ruta de imagen");
     return false;
   }
 
@@ -111,12 +110,6 @@ const isValidImage = (imagePath: string): boolean => {
     normalizedPath.includes("imagenpordefeto.jpg") ||
     normalizedPath.includes("imagenpordefecto.jpg") ||
     normalizedPath.includes("/establisshmentsimages/imagenpordefeto.jpg");
-
-  if (isDefault) {
-    console.log("🖼️ Imagen por defecto detectada y filtrada:", imagePath);
-  } else {
-    console.log("✅ Imagen válida aceptada:", imagePath);
-  }
 
   return !isDefault;
 };

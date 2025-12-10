@@ -7,14 +7,14 @@ import {
   Phone,
   Mail,
   Globe,
-  BotMessageSquareIcon,
+  MapPinPlus,
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Accommodation } from "../schemas/accommodation.schema";
 import { getPinColor } from "@/utils/map-utils";
 import { useAccommodationTypes } from "../hooks/useAccommodationTypes";
-import { useChat } from "@/features/chat";
+import { useItineraryStore } from "../store/itinerary.store";
 import { cn } from "@/lib/utils";
 
 interface InfoWindowContentProps {
@@ -24,7 +24,7 @@ interface InfoWindowContentProps {
 const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
   const pinColor = getPinColor(accommodation.tipo);
   const { data: tiposAlojamiento } = useAccommodationTypes();
-  const { addAccommodationToChat } = useChat();
+  const { isItineraryMode, addItem } = useItineraryStore();
   const [isAdding, setIsAdding] = useState(false);
 
   // Obtener el nombre del tipo de alojamiento
@@ -32,14 +32,19 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
     tiposAlojamiento?.find((tipo) => tipo.id === accommodation.tipo)?.name ||
     `Tipo ${accommodation.tipo}`;
 
-  const handleAddToChat = async () => {
+  const handleAddToItinerary = async () => {
     setIsAdding(true);
     try {
-      addAccommodationToChat(
-        accommodation.nombre,
-        accommodation.direccion,
-        accommodation.id
-      );
+      // Agregar al itinerario
+      addItem({
+        id: accommodation.id,
+        nombre: accommodation.nombre,
+        categoria: tipoNombre,
+        direccion: accommodation.direccion,
+        localidad: accommodation.localidad,
+        region: accommodation.region || "Córdoba",
+      });
+
       // Pequeño delay para feedback visual
       await new Promise((resolve) => setTimeout(resolve, 300));
     } finally {
@@ -133,15 +138,20 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
       {/* Botones de acción */}
       <div className="pt-2 space-y-2 px-4 pb-4">
         <motion.button
-          onClick={handleAddToChat}
-          disabled={isAdding}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          onClick={handleAddToItinerary}
+          disabled={!isItineraryMode || isAdding}
+          whileHover={isItineraryMode ? { scale: 1.02 } : {}}
+          whileTap={isItineraryMode ? { scale: 0.98 } : {}}
           className={cn(
-            "w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-white rounded-lg transition-all duration-200 hover:shadow-lg active:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/40 disabled:opacity-70 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)]"
+            "w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-white rounded-lg transition-all duration-200 hover:shadow-lg active:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/40 disabled:opacity-50 disabled:cursor-not-allowed bg-[linear-gradient(135deg,#F1010C_0%,#C34184_40%,#FE9221_80%)]"
           )}
-          aria-label="Agregar alojamiento al chat"
+          aria-label="Agregar alojamiento al itinerario"
           aria-busy={isAdding}
+          title={
+            !isItineraryMode
+              ? "Activa el Modo Itinerario desde el menú superior"
+              : "Agregar al itinerario"
+          }
         >
           {isAdding ? (
             <>
@@ -150,8 +160,8 @@ const InfoWindowContent = memo(({ accommodation }: InfoWindowContentProps) => {
             </>
           ) : (
             <>
-              <span className="text-xs">Agregar al chat</span>
-              <BotMessageSquareIcon className="w-3 h-3 " />
+              <span className="text-xs">Agregar al Itinerario</span>
+              <MapPinPlus className="w-3 h-3 " />
             </>
           )}
         </motion.button>

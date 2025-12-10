@@ -26,7 +26,8 @@ const makeMessage = (role: "user" | "assistant", content: string) => ({
 });
 
 const ChatWidget = memo(function ChatWidget() {
-  const { isOpen, inputMessage, openChat, closeChat } = useChatStore();
+  const { isOpen, inputMessage, openChat, closeChat, triggerSend } =
+    useChatStore();
 
   // Posición del botón (por defecto bottom-right)
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -139,7 +140,7 @@ const ChatWidget = memo(function ChatWidget() {
                 closeChat();
               }
             }}
-            className="font-bold text-primary hover:text-primary/80 underline decoration-primary hover:decoration-primary/80 transition-colors cursor-pointer"
+            className="font-bold text-primary underline decoration-primary hover:decoration-primary/80 transition-colors cursor-pointer"
           >
             {nombre}
           </button>
@@ -230,7 +231,7 @@ const ChatWidget = memo(function ChatWidget() {
         useChatStore.getState();
       const lastId = accommodationIds[accommodationIds.length - 1];
 
-      // Si se agregó un alojamiento y tenemos el nombre exacto
+      // Si se agregó un alojamiento individual y tenemos el nombre exacto
       if (
         lastId &&
         lastAccommodationName &&
@@ -281,6 +282,23 @@ const ChatWidget = memo(function ChatWidget() {
             inputRef.current.focus();
           }
         }, 0);
+      } else if (storeMessage && !lastAccommodationName) {
+        // Caso del itinerario: simplemente reemplazar el texto completo
+        inputRef.current.textContent = storeMessage;
+        setInput(storeMessage);
+
+        // Mover cursor al final
+        setTimeout(() => {
+          const range = document.createRange();
+          const sel = window.getSelection();
+          if (inputRef.current) {
+            range.selectNodeContents(inputRef.current);
+            range.collapse(false);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+            inputRef.current.focus();
+          }
+        }, 0);
       }
 
       if (!isOpen && storeMessage) openChat();
@@ -309,7 +327,9 @@ const ChatWidget = memo(function ChatWidget() {
     };
 
     // Detectar si el caret está justo antes/después de un span (adyacente)
-    const findAdjacentAccommodationSpan = (dir: "back" | "del"): HTMLElement | null => {
+    const findAdjacentAccommodationSpan = (
+      dir: "back" | "del"
+    ): HTMLElement | null => {
       const sel = window.getSelection?.();
       if (!sel || sel.rangeCount === 0) return null;
       const range = sel.getRangeAt(0);
@@ -368,7 +388,10 @@ const ChatWidget = memo(function ChatWidget() {
           const endNode = range.endContainer;
           const endOffset = range.endOffset;
 
-          if (endNode.nodeType === Node.TEXT_NODE && endNode.parentNode === span) {
+          if (
+            endNode.nodeType === Node.TEXT_NODE &&
+            endNode.parentNode === span
+          ) {
             const endText = endNode.textContent || "";
             if (endOffset === endText.length) {
               return { span, charsSelected: selectedText.length };
@@ -390,10 +413,18 @@ const ChatWidget = memo(function ChatWidget() {
       const next = span.nextSibling;
       const prev = span.previousSibling;
 
-      if (next && next.nodeType === Node.TEXT_NODE && (next as Text).textContent === " ") {
+      if (
+        next &&
+        next.nodeType === Node.TEXT_NODE &&
+        (next as Text).textContent === " "
+      ) {
         next.parentNode?.removeChild(next);
       }
-      if (prev && prev.nodeType === Node.TEXT_NODE && (prev as Text).textContent === " ") {
+      if (
+        prev &&
+        prev.nodeType === Node.TEXT_NODE &&
+        (prev as Text).textContent === " "
+      ) {
         prev.parentNode?.removeChild(prev);
       }
 
@@ -517,14 +548,14 @@ const ChatWidget = memo(function ChatWidget() {
         rect.width > 0
           ? rect.width
           : isMobile
-            ? window.innerWidth - 32
-            : Math.min(window.innerWidth * 0.92, 384);
+          ? window.innerWidth - 32
+          : Math.min(window.innerWidth * 0.92, 384);
       const panelHeight =
         rect.height > 0
           ? rect.height
           : isMobile
-            ? Math.min(window.innerHeight * 0.85, window.innerHeight - 32)
-            : Math.min(window.innerHeight * 0.7, 620);
+          ? Math.min(window.innerHeight * 0.85, window.innerHeight - 32)
+          : Math.min(window.innerHeight * 0.7, 620);
       const margin = 16;
       const btnSize = 48;
 
@@ -822,12 +853,21 @@ const ChatWidget = memo(function ChatWidget() {
 
     setErrorText(null);
 
-    // Extraer IDs de los spans con data-accommodation-id
+    // Primero, obtener IDs del store (pueden venir del itinerario)
+    const storeAccommodationIds = useChatStore.getState().accommodationIds;
+
+    // Extraer IDs de los spans con data-accommodation-id (método anterior)
     const accommodationElements =
       inputRef.current?.querySelectorAll("[data-accommodation-id]") || [];
-    const accommodationIds = Array.from(accommodationElements)
+    const domAccommodationIds = Array.from(accommodationElements)
       .map((el) => el.getAttribute("data-accommodation-id"))
       .filter(Boolean) as string[];
+
+    // Combinar ambos (dar prioridad a los del store si existen)
+    const accommodationIds =
+      storeAccommodationIds.length > 0
+        ? storeAccommodationIds
+        : domAccommodationIds;
 
     // Construir el mensaje de texto plano para el backend (solo nombres sin formato)
     let plainMessage = "";
@@ -898,7 +938,7 @@ const ChatWidget = memo(function ChatWidget() {
           source: "alojamientos-ctr",
           sessionId: sessionId ?? "unknown",
           ...(accommodationIds.length > 0 && {
-            accommodationIds: accommodationIds,
+            accommodationId: accommodationIds,
           }),
         }),
         signal: controller.signal,
@@ -984,6 +1024,16 @@ const ChatWidget = memo(function ChatWidget() {
       setIsSending(false);
     }
   }, [input, isSending, webhookUrl, sessionId]);
+
+  // Detectar cuando se debe enviar automáticamente (desde itinerario)
+  useEffect(() => {
+    if (triggerSend && isOpen && input.trim().length > 0 && !isSending) {
+      // Resetear el flag
+      useChatStore.setState({ triggerSend: false });
+      // Ejecutar envío
+      handleSend();
+    }
+  }, [triggerSend, isOpen, input, isSending, handleSend]);
 
   return (
     <>
@@ -1194,6 +1244,9 @@ const ChatWidget = memo(function ChatWidget() {
                 ref={inputRef}
                 contentEditable
                 suppressContentEditableWarning
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
                 onInput={(e) => {
                   const text = e.currentTarget.textContent || "";
                   setInput(text);
@@ -1223,6 +1276,7 @@ const ChatWidget = memo(function ChatWidget() {
                   lineHeight: "1.5",
                   wordBreak: "break-word",
                   overflowWrap: "break-word",
+                  WebkitUserModify: "read-write-plaintext-only",
                 }}
                 role="textbox"
                 aria-label="Escribe tu mensaje"
